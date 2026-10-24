@@ -51,7 +51,7 @@ jobs:
           else
             python auto_learning.py --mode hourly
           fi
-            - name: Persist status and completed observations
+      - name: Persist status and completed observations
         working-directory: .
         run: |
           git config user.name 'github-actions[bot]'
@@ -62,6 +62,6 @@ jobs:
             fi
           done
           if ! git diff --cached --quiet; then
-            git commit -m "Auto record SmartStock observations and research"
+            git commit -m 'Auto record SmartStock observations and research'
             git push
           fi
