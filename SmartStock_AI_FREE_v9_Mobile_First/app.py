@@ -1,6 +1,7 @@
 """SmartStock AI Dashboard, research-only Streamlit app."""
 from __future__ import annotations
 
+import hmac
 import datetime as dt
 import math
 import re
@@ -22,6 +23,7 @@ from options_engine import analyze_options, pick_expiry
 from intelligence import fundamentals_snapshot, news_headline_score, build_llm_context
 from research import adaptive_signals, wave_candidates, free_explanation
 from local_ai import explain_with_ollama
+from explain_chat import answer_question, call_gemini, buy_conditions_answer, conditions
 from journal import update_journal
 from strict_validation import audit_history
 from risk_engine import data_audit, risk_report, hypothetical_size, historical_stress, compare_market
@@ -38,7 +40,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 10.0 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.2 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -316,7 +318,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.0</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.2</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -515,6 +517,116 @@ if strict.recommendation=='판단 보류':
 else:
     st.success(f'**검증 기반 참고 신호: {strict.recommendation}** · {horizon_days}거래일')
 st.caption('상승점수는 실제 수익 확률이 아닙니다. 예측의 정확성 및 수익 보장 없음.')
+
+# Beginner-friendly grounded question assistant, built on the CURRENT displayed
+# ticker and audit. No API key is needed for default explanatory answers.
+_saved_opts = st.session_state.get('options_result')
+_current_opts = (_saved_opts[2] if _saved_opts and _saved_opts[:2] == (symbol, date) else None)
+_option_snapshot = {}
+if _current_opts is not None:
+    for field in ('oi_pcr','volume_pcr','call_oi','put_oi','max_pain',
+                  'call_wall','put_wall','implied_vol','implied_move_pct','atm_straddle'):
+        _option_snapshot[field] = getattr(_current_opts, field, None)
+
+_last_ind = df.iloc[-1]
+_explain_snapshot = {
+    'symbol':symbol, 'date':date, 'price':spot, 'horizon':horizon_days,
+    'score':res.probability, 'recommendation':strict.recommendation,
+    'evaluations':strict.evaluations, 'long_signals':strict.evaluated_long_signals,
+    'long_hit_rate':strict.long_hit_rate, 'positive_halves':strict.positive_halves,
+    'diagnostics':list(strict.diagnostics or [])[:8], 'quality':health.status,
+    'ma20':float(_last_ind['MA20']) if pd.notna(_last_ind['MA20']) else None,
+    'ma60':float(_last_ind['MA60']) if pd.notna(_last_ind['MA60']) else None,
+    'rsi':float(_last_ind['RSI14']) if pd.notna(_last_ind['RSI14']) else None,
+    'macd_hist':float(_last_ind['MACD_hist']) if pd.notna(_last_ind['MACD_hist']) else None,
+    'stoch_k5':float(_last_ind['STO_K5']) if pd.notna(_last_ind['STO_K5']) else None,
+    'stoch_d5':float(_last_ind['STO_D5']) if pd.notna(_last_ind['STO_D5']) else None,
+    'levels':{k:float(v) for k,v in res.levels.items() if isinstance(v,(int,float)) and math.isfinite(float(v))},
+    'options':_option_snapshot,
+}
+with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 용어 / 차트 설명', expanded=False):
+    st.caption('무료 기본 해설은 현재 분석값과 금융 용어를 연결하는 규칙형 답변입니다. 모든 질문을 이해하는 생성형 AI는 아닙니다.')
+    qq=conditions(_explain_snapshot)
+    c1,c2=st.columns(2)
+    c1.metric('현재 상승점수 기준', '통과' if qq['score_ok'] else '미통과' if qq['score_ok'] is False else '미확인')
+    c2.metric('과거 매수 후보',f'{qq["long_signals"]}건 / 최소 10건')
+    question_focus=st.selectbox('질문 대상',[
+        '현재 판단','매수 조건','옵션 전체','풋/콜 비율 PCR','미결제약정 OI',
+        '내재변동성 IV','Max Pain','콜월·풋월','그릭스',
+        '목표가·손절가','RSI','MACD','스토캐스틱','엘리엇 파동'],
+        help='“저게 뭐야?”처럼 대상을 생략해도 이 선택을 기준으로 답할 수 있습니다.',
+        key='explain_question_focus')
+    qa1,qa2,qa3=st.columns(3,gap='small')
+    quick=None
+    if qa1.button('왜 보류야?',use_container_width=True,key='explain_quick_why'):
+        quick='왜 이렇게 결론 내렸어?'
+    if qa2.button('매수 조건?',use_container_width=True,key='explain_quick_buy'):
+        quick='매수 조건이 뭐고 지금 충족됐어?'
+    if qa3.button('옵션이 뭐야?',use_container_width=True,key='explain_quick_opt'):
+        quick='옵션이 뭐야?'
+    with st.form('explain_qa_form', clear_on_submit=True):
+        user_question=st.text_input('궁금한 내용을 입력하세요',
+            placeholder='예: PCR 1.2는 무슨 뜻이야? 왜 매수 판단을 안 해?',
+            max_chars=600,key='explain_question_text')
+        submitted=st.form_submit_button('질문 보내기',use_container_width=True)
+    chat_identity=f'{symbol}:{date}:{horizon_days}'
+    if st.session_state.get('explain_chat_identity')!=chat_identity:
+        st.session_state['explain_chat_identity']=chat_identity
+        st.session_state['explain_chat_history']=[]
+        st.session_state['gemini_session_calls']=0
+    message=quick or (user_question if submitted else '')
+    # Optional Gemini: the account owner configures Streamlit Cloud Secrets.
+    try:
+        gemini_key=str(st.secrets.get('GEMINI_API_KEY','')).strip()
+        gemini_model=str(st.secrets.get('GEMINI_MODEL','gemini-3.5-flash-lite')).strip()
+        chat_access_pin=str(st.secrets.get('CHAT_ACCESS_PIN','')).strip()
+    except Exception:
+        gemini_key=''
+        gemini_model='gemini-3.5-flash-lite'
+        chat_access_pin=''
+    if gemini_key and chat_access_pin and len(chat_access_pin)>=8:
+        st.caption('생성형 AI 자유 질문은 별도 운영자 PIN으로 잠겨 있습니다. 공개 종목 분석값과 질문을 외부 API로 보냅니다.')
+        supplied_pin=st.text_input('AI 자유 질문 사용 PIN (운영자 전용)',
+            type='password',key='explain_chat_pin')
+        pin_valid=hmac.compare_digest(supplied_pin,chat_access_pin)
+        online_mode=st.checkbox('생성형 AI 자유 질문 사용',
+            value=False,disabled=not pin_valid,key='explain_optional_gemini') and pin_valid
+    else:
+        online_mode=False
+        if gemini_key and not chat_access_pin:
+            st.warning('보안상 생성형 AI 연결을 차단했습니다. Streamlit 비밀 설정에 8자 이상 CHAT_ACCESS_PIN도 설정해야 합니다.')
+        elif gemini_key and len(chat_access_pin)<8:
+            st.warning('보안상 생성형 AI 연결을 차단했습니다. CHAT_ACCESS_PIN을 8자 이상으로 정해주세요.')
+        else:
+            st.caption('자유로운 생성형 AI 질문은 운영자가 Streamlit Cloud Secrets에 GEMINI_API_KEY와 8자 이상 CHAT_ACCESS_PIN을 등록해야 합니다. 기본 해설은 키 없이 작동합니다.')
+    if message:
+        history=st.session_state['explain_chat_history']
+        if online_mode:
+            if st.session_state['gemini_session_calls']>=15:
+                response='이 브라우저 세션의 생성형 AI 질문 제한(15회)에 도달했습니다. 기본 해설로 질문해주세요.'
+            else:
+                st.session_state['gemini_session_calls']+=1
+                try:
+                    with st.spinner('생성형 AI가 현재 데이터를 확인하는 중...'):
+                        response=call_gemini(message,_explain_snapshot,gemini_key,gemini_model)
+                except Exception as exc:
+                    response=f'외부 AI 응답 실패: {str(exc)[:180]}\n\n기본 해설: '
+                    response+=answer_question(message,_explain_snapshot,question_focus)
+        else:
+            response=answer_question(message,_explain_snapshot,question_focus)
+        history.append({'question':message,'answer':response})
+        if len(history)>12:
+            del history[:-12]
+    for entry in st.session_state['explain_chat_history']:
+        with st.chat_message('user'):
+            st.write(entry['question'])
+        with st.chat_message('assistant'):
+            st.markdown(entry['answer'])
+    if st.button('질문 기록 지우기',key='explain_clear_history'):
+        st.session_state['explain_chat_history']=[]
+        st.rerun()
+    st.caption('질문 기록은 이 브라우저 세션에만 보관합니다. 화면을 직접 보는 기능, 매매 주문, 항상 최신 뉴스를 검색하는 기능은 아닙니다.')
+
 regime8=classify_market(raw)
 
 # Mobile primary navigation: just four large finger-friendly choices.
@@ -1063,4 +1175,4 @@ if active_section=='quick':
     st.caption('프로그램 화면은 새로고침 시 분석하고, GitHub 예약 실행에서는 조건 변경 시 Telegram 메시지를 발송할 수 있습니다. 자동 알림 사용에는 개인 Bot Token과 Chat ID를 GitHub Secrets에 별도 등록해야 합니다.')
     st.info('자동 알림은 앱이 아닌 GitHub Actions의 정기 실행에 의존하므로 실시간 알림이 아니며, 설정하지 않으면 완전히 꺼져 있습니다.')
 
-st.caption('SmartStock AI FREE 9.2 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
+st.caption('SmartStock AI FREE 10.2 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
