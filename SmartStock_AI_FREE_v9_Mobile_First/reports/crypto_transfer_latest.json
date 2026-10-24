@@ -1,0 +1,82 @@
+{
+  "timestamp_utc": "2026-10-24T15:38:31.435120+00:00",
+  "mode": "하루 1회 코인→주식 전이학습 실험",
+  "status": "ok",
+  "integrated_into_live_stock_predictions": false,
+  "why": "독립 검증이 추가로 필요하므로 자동으로 주식 모델을 교체하지 않습니다.",
+  "results": [
+    {
+      "horizon_days": 21,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "학습 종료시점 이전의 코인 과거 사례가 부족합니다.",
+      "stock_training_cases": 1478,
+      "development_cases": 427,
+      "holdout_cases": 427,
+      "effective_dev_cases": 20,
+      "effective_holdout_cases": 20,
+      "crypto_training_cases": {},
+      "symbol": "NVDA"
+    },
+    {
+      "horizon_days": 21,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "학습 종료시점 이전의 코인 과거 사례가 부족합니다.",
+      "stock_training_cases": 1478,
+      "development_cases": 427,
+      "holdout_cases": 427,
+      "effective_dev_cases": 20,
+      "effective_holdout_cases": 20,
+      "crypto_training_cases": {},
+      "symbol": "MSFT"
+    },
+    {
+      "horizon_days": 21,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "학습 종료시점 이전의 코인 과거 사례가 부족합니다.",
+      "stock_training_cases": 1478,
+      "development_cases": 427,
+      "holdout_cases": 427,
+      "effective_dev_cases": 20,
+      "effective_holdout_cases": 20,
+      "crypto_training_cases": {},
+      "symbol": "AAPL"
+    },
+    {
+      "horizon_days": 21,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "주식의 유효 학습 사례 256개: 전이학습 비교에 필요한 시계열이 부족합니다.",
+      "symbol": "CRWV"
+    },
+    {
+      "horizon_days": 21,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "학습 종료시점 이전의 코인 과거 사례가 부족합니다.",
+      "stock_training_cases": 1478,
+      "development_cases": 427,
+      "holdout_cases": 427,
+      "effective_dev_cases": 20,
+      "effective_holdout_cases": 20,
+      "crypto_training_cases": {},
+      "symbol": "TSLA"
+    },
+    {
+      "horizon_days": 21,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "학습 종료시점 이전의 코인 과거 사례가 부족합니다.",
+      "stock_training_cases": 1478,
+      "development_cases": 427,
+      "holdout_cases": 427,
+      "effective_dev_cases": 20,
+      "effective_holdout_cases": 20,
+      "crypto_training_cases": {},
+      "symbol": "SPY"
+    }
+  ],
+  "errors": []
+}
