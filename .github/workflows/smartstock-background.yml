@@ -51,13 +51,17 @@ jobs:
           else
             python auto_learning.py --mode hourly
           fi
-      - name: Persist status and completed observations
+            - name: Persist status and completed observations
         working-directory: .
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add SmartStock_AI_FREE_v9_Mobile_First/data SmartStock_AI_FREE_v9_Mobile_First/reports
+          for dir in SmartStock_AI_FREE_v9_Mobile_First/data SmartStock_AI_FREE_v9_Mobile_First/reports; do
+            if [ -d "$dir" ]; then
+              git add -A -- "$dir"
+            fi
+          done
           if ! git diff --cached --quiet; then
-            git commit -m 'Auto record SmartStock observations and research'
+            git commit -m "Auto record SmartStock observations and research"
             git push
           fi
