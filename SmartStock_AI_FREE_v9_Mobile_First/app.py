@@ -32,12 +32,13 @@ from sec_backfill import save_sec_filings,load_sec_filings
 from historical_backfill import backfill_news
 from timeframe import TIMEFRAMES, fetch_timeframe, chart as multi_chart
 from mobile_ui import resolve_known_ticker, mobile_page
+from crypto_transfer import get_candles
 from v8_features import (reliability_calibration, classify_market, model_cost_stress,
     option_snapshot_changes, earnings_event_info, indicator_candidate_lab, watchlist_relative,
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 9.0 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.0 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -123,9 +124,12 @@ def do_analyze(raw, horizon_days):
     res=analyze(df, horizon_days=horizon_days)
     return df,res
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def do_strict_audit(raw, horizon_days, latest_score):
-    return audit_history(raw, horizon_days, latest_score)
+    # Version bump intentionally invalidates the former cached 0-result.
+    cache_version = 'strict-audit-2026-10-24-v9.2'
+    result = audit_history(raw, horizon_days, latest_score)
+    return result
 
 @st.cache_data(ttl=900, show_spinner=False)
 def load_intraday(symbol):
@@ -312,8 +316,52 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">9.0</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.0</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
+# GitHub Actions creates these reports only after workflows are registered in
+# the repository root and successfully execute. Never simulate a healthy run.
+with st.expander('🤖 자동 학습·코인 연구 상태 (읽기 전용)', expanded=False):
+    for report_path, title in [
+       (Path(__file__).parent/'data'/'monitor_latest.json','예약 시장 감시'),
+       (Path(__file__).parent/'reports'/'crypto_transfer_latest.json','코인→주식 전이학습 실험')]:
+        st.markdown(f'**{title}**')
+        if report_path.exists():
+            try:
+                import json
+                state=json.loads(report_path.read_text(encoding='utf-8'))
+                st.caption(f"최종 저장: {state.get('timestamp_utc','미확인')} · 상태: {state.get('status','미확인')}")
+                if 'results' in state:
+                    for r in state['results'][:6]:
+                        st.write(f"{r.get('symbol','?')}: {r.get('status','미검증')} · {r.get('reason','')}")
+                if state.get('failures') or state.get('errors'):
+                    st.warning('일부 데이터 수집 실패: GitHub Actions 로그를 확인하세요.')
+            except (ValueError, OSError):
+                st.warning('자동 학습 기록 파일을 읽지 못했습니다.')
+        else:
+            st.info('기록 없음 — GitHub 저장소 최상단에 자동실행 설정을 등록한 뒤 첫 실행을 확인하세요.')
+with st.expander('🪙 비트코인·이더리움·솔라나 차트', expanded=False):
+    st.caption('업비트 무료 공개자료. 코인 차트는 참고용이며 주식의 매수확률로 계산하지 않습니다.')
+    crypto_market=st.selectbox('코인 선택',['KRW-BTC','KRW-ETH','KRW-SOL'],key='crypto_market_mobile')
+    crypto_interval=st.radio('캔들 주기',['5분봉','일봉'],horizontal=True,key='crypto_interval_mobile')
+    if st.button('🪙 코인 차트 조회',key='crypto_chart_load',use_container_width=True):
+        try:
+            coin_data=get_candles(crypto_market,unit='minutes/5' if crypto_interval=='5분봉' else 'days',count=130 if crypto_interval=='5분봉' else 260)
+            if coin_data.empty:
+                st.warning('완성된 코인 가격 봉을 받지 못했습니다.')
+            else:
+                st.session_state['crypto_mobile_chart']=(crypto_market,crypto_interval,coin_data)
+        except Exception as err:
+            st.error(f'코인 자료 조회 실패: {str(err)[:160]}')
+    saved=st.session_state.get('crypto_mobile_chart')
+    if saved and saved[0]==crypto_market and saved[1]==crypto_interval:
+        d=saved[2]
+        fig=go.Figure(go.Candlestick(x=d.index,open=d.Open,high=d.High,low=d.Low,close=d.Close,
+                                     increasing_line_color='#ef4444',decreasing_line_color='#3b82f6'))
+        fig.update_layout(height=320,margin=dict(l=3,r=3,t=10,b=15),
+            xaxis_rangeslider_visible=False,template='plotly_dark',xaxis_title='UTC',yaxis_title='KRW')
+        st.plotly_chart(fig,use_container_width=True)
+        st.caption(f'확정된 최근 캔들: {d.index[-1]} UTC · 지연된 무료 데이터일 수 있습니다.')
+
 if 'symbol' not in st.session_state:
     st.session_state.symbol='NVDA'
 
@@ -494,6 +542,11 @@ if active_section in ('forecast','model'):
         b.metric('95% 통계적 하한',f'{strict.long_wilson_lower:.1%}' if strict.long_wilson_lower is not None else '표본 부족')
         st.caption(res.explanation)
         if strict.diagnostics:st.caption('판단 보류 사유: '+' / '.join(strict.diagnostics[:4]))
+        if strict.evaluations == 0:
+            st.warning('과거 평가 0건의 원인 확인: 아래 실제 입력 데이터를 먼저 확인하세요. 0건일 때는 예측 수치를 매매 근거로 사용하지 마세요.')
+            st.code(f'앱 진단버전: 9.2\n가격 데이터: {len(raw)}거래일\n최초 날짜: {raw.index[0]}\n최근 날짜: {raw.index[-1]}\n선택 예측기간: {horizon_days}거래일\n최신 모델점수 존재: {res.probability is not None}\n진단 내용: {" / ".join(strict.diagnostics)}', language='text')
+        else:
+            st.caption(f'9.2 검증 엔진: 과거 예비 평가 {strict.evaluations}건 (실전 신뢰도 보장 아님)')
 
 if active_section=='chart':
     with st.expander('⚙️ 차트 보조지표 표시 설정',expanded=False):
@@ -1002,4 +1055,4 @@ if active_section=='quick':
     st.caption('프로그램 화면은 새로고침 시 분석하고, GitHub 예약 실행에서는 조건 변경 시 Telegram 메시지를 발송할 수 있습니다. 자동 알림 사용에는 개인 Bot Token과 Chat ID를 GitHub Secrets에 별도 등록해야 합니다.')
     st.info('자동 알림은 앱이 아닌 GitHub Actions의 정기 실행에 의존하므로 실시간 알림이 아니며, 설정하지 않으면 완전히 꺼져 있습니다.')
 
-st.caption('SmartStock AI FREE 9.0 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
+st.caption('SmartStock AI FREE 9.2 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
