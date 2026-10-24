@@ -42,7 +42,11 @@ def prediction_at(prices: pd.DataFrame, test_position: int, horizon_days: int) -
     date or any later prices. Feature computation uses past/current OHLCV only.
     """
     h = validate_horizon(horizon_days)
-    if not 0 <= test_position < len(prices) or test_position < 400+h:
+    # Short-listed stocks can be examined in research-only mode.  The
+    # minimum is a function of *the date being predicted*, not how much
+    # future history happens to be present in the supplied DataFrame.
+    early_sample = test_position < 400+h
+    if not 0 <= test_position < len(prices) or test_position < (235+h if early_sample else 400+h):
         return None
     d=indicators(prices.iloc[:test_position+1])
     x=make_features(d)
@@ -51,7 +55,8 @@ def prediction_at(prices: pd.DataFrame, test_position: int, horizon_days: int) -
     allowed=x.iloc[:test_position-h].copy()
     allowed['target']=(r.iloc[:test_position-h]>0).astype(int)
     allowed=allowed.dropna()
-    if len(allowed)<220 or allowed['target'].nunique()<2 or x.iloc[[-1]].isna().any(axis=None):
+    min_train = 100 if early_sample else 220
+    if len(allowed)<min_train or allowed['target'].nunique()<2 or x.iloc[[-1]].isna().any(axis=None):
         return None
     model=_model(len(allowed));model.fit(allowed[FEATURES],allowed['target'])
     classes=list(model.classes_)
@@ -89,14 +94,25 @@ def audit_history(prices: pd.DataFrame, horizon_days:int, latest_score:float | N
     frame=prices[['Open','High','Low','Close','Volume']].copy()
     n=len(frame)
     failures=[];rows=[]
-    if n<650+h or latest_score is None:
-        return StrictAudit('판단 보류','데이터 또는 학습 예측이 부족합니다.',h,0,0,None,None,None,None,None,None,None,None,False,[],['과거 차트 검증을 위한 기간이 부족합니다.'],None,0)
+    full_history_required = 650+h
+    is_short_history = n < full_history_required
+    if latest_score is None or n < 260+h:
+        reason = (f'가격 데이터 {n}거래일: 이 기간의 결과를 평가할 학습·미래 관측치가 부족합니다. '
+                  f'(선택 기간 {h}거래일)')
+        return StrictAudit('판단 보류',reason,h,0,0,None,None,None,None,None,None,None,None,False,[],[reason],None,0)
     # Test endpoints may not use future observations after each test date.
     # Non-overlapping realized outcomes, spaced no closer than H sessions.
-    begin=max(420+h,int(n*.52))
+    # For young listings, evaluate a small *exploratory* sample. It must
+    # never be interpreted as sufficient evidence for an actionable signal.
+    if is_short_history:
+        begin=max(235+h,int(n*.60))
+        failures.append(f'상장 이력 {n}거래일: 완전 검증 권장 기준 {full_history_required}거래일에 미달. 예비 검증 결과만 제공합니다.')
+    else:
+        begin=max(420+h,int(n*.52))
     end=n-h-1
     if end<begin:
-        return StrictAudit('판단 보류','과거 검증 표본 부족',h,0,0,None,None,None,None,None,None,None,None,False,[],['검증 가능한 미래 결과가 부족합니다.'],None,0)
+        reason=f'검증 가능한 미래 관측기간이 부족합니다: 전체 {n}거래일, 선택한 예측기간 {h}거래일'
+        return StrictAudit('판단 보류',reason,h,0,0,None,None,None,None,None,None,None,None,False,[],[reason],None,0)
     stride=max(h,max(1,(end-begin)//max_checks))
     positions=list(range(begin,end+1,stride))
     for t in positions:
@@ -119,7 +135,7 @@ def audit_history(prices: pd.DataFrame, horizon_days:int, latest_score:float | N
                      '훈련표본':num_train,'당시학습상승빈도':round(prior,4),'시장국면':regime,'상승추세':bull})
     m=len(rows)
     if m==0:
-        return StrictAudit('판단 보류','독립된 과거 검증 결과가 없습니다.',h,0,0,None,None,None,None,None,None,None,None,False,[],['모델 학습 조건을 만족한 검증 구간이 없습니다.'],None,0)
+        return StrictAudit('판단 보류','독립된 과거 검증 결과가 없습니다.',h,0,0,None,None,None,None,None,None,None,None,False,[],[f'상장 이력 {n}거래일과 예측기간 {h}거래일에서 검증 가능한 모델 학습 구간이 없습니다.'],None,0)
     tab=pd.DataFrame(rows)
     mask=tab['신호']=='매수 검토'
     longs=tab.loc[mask]
@@ -144,11 +160,14 @@ def audit_history(prices: pd.DataFrame, horizon_days:int, latest_score:float | N
     consistent=all(sides)
     # A conservative filter uses sample size, fixed thresholds, relative results,
     # and a 95% Wilson lower bound. Passing is *not* a certified true probability.
-    passes=(m>=MIN_TESTS and s>=MIN_SIGNALS and hit is not None
+    # Never promote a short-history exploratory audit into an investment signal.
+    passes=(not is_short_history and m>=MIN_TESTS and s>=MIN_SIGNALS and hit is not None
             and hit>=max(.62,baseline+.05) and lower is not None and lower>.50
             and avg_net is not None and avg_net>0 and consistent and brier<base_brier)
     recent=frame.Close
     now_bull=bool(recent.iloc[-1]>recent.tail(60).mean() and recent.tail(20).mean()>recent.tail(60).mean())
+    if is_short_history:
+        failures.append('예비 검증만 가능: 적중률·확률 신뢰도·매수 신호로 해석하지 마세요.')
     if m<MIN_TESTS:failures.append(f'독립된 과거 평가 {m}건: 기준 {MIN_TESTS}건 미달')
     if s<MIN_SIGNALS:failures.append(f'과거 매수 검토 신호 {s}건: 기준 {MIN_SIGNALS}건 미달')
     if hit is not None and hit<max(.62,baseline+.05):failures.append('과거 매수 신호 적중률이 사전 고정된 통과 기준에 미달')
