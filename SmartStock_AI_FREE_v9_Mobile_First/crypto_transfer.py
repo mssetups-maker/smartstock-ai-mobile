@@ -27,8 +27,8 @@ def get_candles(market: str, *, unit: str='days', count: int=1100,
     """
     if market not in COINS:
         raise ValueError('지원 코인: KRW-BTC / KRW-ETH / KRW-SOL')
-    if unit not in ('days', 'minutes/5') or not 1 <= count <= 2000:
-        raise ValueError('unit은 days 또는 minutes/5, count는 1~2000')
+    if unit not in ('days', 'minutes/5') or not 1 <= count <= 4200:
+        raise ValueError('unit은 days 또는 minutes/5, count는 1~4200')
     if fetch is None:
         import requests
         session = requests.Session()
@@ -41,7 +41,7 @@ def get_candles(market: str, *, unit: str='days', count: int=1100,
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     interval = timedelta(days=1) if unit=='days' else timedelta(minutes=5)
-    limit=min(count,2000)
+    limit=min(count,4200)
     rows=[]; to=None
     while len(rows)<limit:
         params={'market':market,'count':min(200,limit-len(rows))}
@@ -116,24 +116,41 @@ def transfer_audit(stock:pd.DataFrame, crypto:dict[str,pd.DataFrame], horizon:in
     train=s.iloc[:train_end];dev=s.iloc[dev_start:dev_start+k];test=s.iloc[test_start:test_start+k]
     # Crypto forward outcomes must have finished BEFORE the final stock training date.
     asof=pd.Timestamp(train.index[-1])
-    pool=[]; counts={}
+    pool=[];counts={};diagnostics={}
+    # Crypto is traded every calendar day, unlike U.S. stocks. Match the
+    # approximate *elapsed* horizon rather than using h calendar days.
+    crypto_h=max(1,int(round(h*7/5)))
     for symbol,raw in crypto.items():
         try:
             cp=clean_prices(raw)
-            cp=cp[cp.index<=asof-pd.Timedelta(days=h+1)]
-            a=training_rows(cp,h)
+            observed_start=cp.index[0].isoformat() if len(cp) else None
+            observed_end=cp.index[-1].isoformat() if len(cp) else None
+            # Purge crypto bars whose outcomes could finish after the stock
+            # training cutoff. Training_rows itself further excludes labels.
+            cp=cp[cp.index<=asof-pd.Timedelta(days=crypto_h+1)]
+            a=training_rows(cp,crypto_h) if len(cp)>140 else pd.DataFrame()
+            eligible=len(a)
             # cap by evenly spaced observations; crypto must not swamp stocks
             if len(a)>len(train):
                 idx=np.linspace(0,len(a)-1,len(train),dtype=int)
                 a=a.iloc[idx]
+            diagnostics[symbol]={'observed_start':observed_start,
+                'observed_end':observed_end,'eligible_before_downsample':eligible,
+                'eligible':len(a),'last_eligible':a.index[-1].isoformat() if len(a) else None}
             if len(a)>=40:
                 pool.append(a);counts[symbol]=len(a)
-        except Exception:continue
+        except Exception as exc:
+            diagnostics[symbol]={'error':f'{type(exc).__name__}: {str(exc)[:100]}'}
     out.update({'stock_training_cases':len(train),'development_cases':len(dev),
         'holdout_cases':len(test),'effective_dev_cases':len(dev)//h,
-        'effective_holdout_cases':len(test)//h,'crypto_training_cases':counts})
+        'effective_holdout_cases':len(test)//h,'crypto_training_cases':counts,
+        'stock_training_cutoff':pd.Timestamp(train.index[-1]).isoformat(),
+        'stock_test_start':pd.Timestamp(test.index[0]).isoformat(),
+        'stock_test_end':pd.Timestamp(test.index[-1]).isoformat(),
+        'crypto_horizon_calendar_days':crypto_h,
+        'crypto_diagnostics':diagnostics})
     if not pool:
-        out['reason']='학습 종료시점 이전의 코인 과거 사례가 부족합니다.'
+        out['reason']=f'주식 학습 종료일 {asof.date()}보다 충분히 오래된 코인 학습 사례가 없습니다. crypto_diagnostics를 확인하세요.'
         return out
     if train.target.nunique()<2:
         out['reason']='주식 학습 데이터에 상승·하락 양쪽 사례가 없습니다.'

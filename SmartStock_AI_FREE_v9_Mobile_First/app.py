@@ -323,7 +323,8 @@ st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 with st.expander('🤖 자동 학습·코인 연구 상태 (읽기 전용)', expanded=False):
     for report_path, title in [
        (Path(__file__).parent/'data'/'monitor_latest.json','예약 시장 감시'),
-       (Path(__file__).parent/'reports'/'crypto_transfer_latest.json','코인→주식 전이학습 실험')]:
+       (Path(__file__).parent/'reports'/'crypto_transfer_latest.json','코인→주식 전이학습 실험'),
+       (Path(__file__).parent/'reports'/'crypto_intraday_latest.json','코인 5분봉 학습·1시간 후 검증')]:
         st.markdown(f'**{title}**')
         if report_path.exists():
             try:
@@ -333,6 +334,9 @@ with st.expander('🤖 자동 학습·코인 연구 상태 (읽기 전용)', exp
                 if 'results' in state:
                     for r in state['results'][:6]:
                         st.write(f"{r.get('symbol','?')}: {r.get('status','미검증')} · {r.get('reason','')}")
+                if 'crypto_5min_evaluations' in state:
+                    for coin,info in state['crypto_5min_evaluations'].items():
+                        st.caption(f"{coin}: 기록 {info.get('observations',0)}개 · {info.get('status','확인 필요')} · 독립검증 {info.get('independent_test_cases',0)}건")
                 if state.get('failures') or state.get('errors'):
                     st.warning('일부 데이터 수집 실패: GitHub Actions 로그를 확인하세요.')
             except (ValueError, OSError):
@@ -541,6 +545,10 @@ if active_section in ('forecast','model'):
         a.metric('과거 순방향 적중률',f'{strict.long_hit_rate:.1%}' if strict.long_hit_rate is not None else '표본 부족')
         b.metric('95% 통계적 하한',f'{strict.long_wilson_lower:.1%}' if strict.long_wilson_lower is not None else '표본 부족')
         st.caption(res.explanation)
+        if strict.evaluations and not strict.evaluated_long_signals:
+            st.info(f'가격 데이터 {len(raw):,}거래일과 과거 평가 {strict.evaluations}건은 있지만, 엄격한 조건의 매수 검토 신호가 0건입니다. 여기서 표본 부족은 주가 이력 부족이라는 뜻이 아닙니다.')
+        elif strict.evaluations and strict.evaluated_long_signals<10:
+            st.info(f'가격 데이터 {len(raw):,}거래일 · 과거 평가 {strict.evaluations}건 · 매수 신호 {strict.evaluated_long_signals}건. 매수 적중률을 신뢰하기에 신호 수가 적습니다.')
         if strict.diagnostics:st.caption('판단 보류 사유: '+' / '.join(strict.diagnostics[:4]))
         if strict.evaluations == 0:
             st.warning('과거 평가 0건의 원인 확인: 아래 실제 입력 데이터를 먼저 확인하세요. 0건일 때는 예측 수치를 매매 근거로 사용하지 마세요.')
