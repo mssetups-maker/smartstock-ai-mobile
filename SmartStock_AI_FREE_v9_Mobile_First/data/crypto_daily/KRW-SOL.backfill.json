@@ -1,0 +1,7 @@
+{
+  "first_backfill_utc": "2026-10-25T02:08:11.642997+00:00",
+  "requested": 3800,
+  "received": 1836,
+  "first_available": "2021-10-15T00:00:00",
+  "last_available": "2026-10-24T00:00:00"
+}
