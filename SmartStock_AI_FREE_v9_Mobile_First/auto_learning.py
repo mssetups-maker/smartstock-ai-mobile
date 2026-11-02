@@ -30,7 +30,7 @@ from forecast_forward import update_forecast_audit
 from opportunity_diagnostics import batch_diagnostics, save_diagnostics
 from wave_bottom_audit import update_bottom_audit
 from market_data_guard import daily_market_state
-from stock_data_provider import fetch_stock_daily
+from stock_data_provider import fetch_stock_daily, ensure_recent_daily
 
 ROOT=Path(__file__).resolve().parent
 
@@ -96,7 +96,7 @@ def hourly(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
             failures.append({'source':symbol,'error':str(e)[:180]})
     payload={'timestamp_utc':now.isoformat(),'mode':'15분 예약 감시 (실시간 아님)',
         'cryptocurrency':results,'stocks':equities,'failures':failures,
-        'status':'ok' if len(results)+len(equities)>0 else 'failed',
+        'status':('failed' if len(results)+len(equities)==0 else 'partial' if failures else 'ok'),
         'last_successful_observations':len(results)+len(equities)}
     # Save new snapshot only once per UTC hour, otherwise avoid 96 Git commits/day.
     path=root/'data'/'monitor_latest.json'
@@ -163,7 +163,7 @@ def prepare_completed_stock_daily(raw: pd.DataFrame, symbol: str, *, now: dateti
 
 def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     now=now or datetime.now(timezone.utc)
-    reports=[];failure=[];crypto={};coverage={};stock_history={}
+    reports=[];failure=[];crypto={};coverage={};stock_history={};stock_sources={}
     for c in COINS:
         try:
             file=root/'data'/'crypto_daily'/f'{c}.csv'
@@ -192,7 +192,8 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
                 'last':merged.index[-1].isoformat(),'deep_backfill':deep}
         except Exception as exc:
             failure.append({'source':c,'error':str(exc)[:180]})
-    if stock_getter is None:
+    use_live_provider=stock_getter is None
+    if use_live_provider:
         stock_getter=lambda t: fetch_stock_daily(t,now=now)
     # Model comparisons remain in their own development + untouched holdout
     # windows. Results are research only; do NOT deploy them to live UI.
@@ -203,8 +204,18 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
             # The provider can publish transient OHLC contradictions intraday;
             # those must not cause a false failure for an otherwise valid prior day.
             # Historical or closed candles remain strictly validated, never repaired.
-            raw=prepare_completed_stock_daily(stock_getter(symbol),symbol,now=now)
+            fetched=stock_getter(symbol)
+            source=str(fetched.attrs.get('stock_data_source','unknown'))
+            raw=prepare_completed_stock_daily(fetched,symbol,now=now)
             if len(raw)<320:raise ValueError(f'주식 가격 자료가 {len(raw)}일뿐입니다.')
+            # Do not evaluate outdated fallback candles as today's forecast.
+            if use_live_provider:  # injected test providers may be historical fixtures
+                ensure_recent_daily(raw,symbol,now=now)
+            # Record provenance for independent review. A fallback provider
+            # can be adjusted differently, so never splice it into Yahoo bars.
+            stock_sources[symbol]={'provider':source,
+                                  'last_completed_bar':str(raw.index[-1]),
+                                  'rows':len(raw)}
             stock_history[symbol]=raw
             for h in horizons:
                 result=transfer_audit(raw,crypto,horizon=h)
@@ -302,7 +313,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
              'status':'ok' if reports and not failure else 'partial' if reports else 'failed',
              'integrated_into_live_stock_predictions':False,
              'why':'연구 결과만 저장하며, 독립 검증과 실제 미래 성과가 확인되기 전에는 실거래 모델을 교체하지 않습니다.',
-             'crypto_coverage':coverage,'novel_pattern_research':novel_summary,
+             'crypto_coverage':coverage,'stock_sources':stock_sources,'novel_pattern_research':novel_summary,
              'paper_strategy_audit':paper_summary,'opportunity_funnel':{k:v for k,v in opportunity.items() if k!='by_symbol'},
              'forward_ml_audit':ml_summary,'wave_bottom_audit':{k:v for k,v in wave_bottom_summary.items() if k!='by_symbol'},'horizons':list(horizons),
              'results':reports,'errors':failure}
@@ -310,9 +321,11 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     # Keep 'partial' distinct from 'ok': a green workflow step does not prove
     # every data source, optional research module, or model succeeded.
     health_record={
-       'version':'10.11.2','timestamp_utc':now.isoformat(),
+       'version':'10.12.0','timestamp_utc':now.isoformat(),
        'status':payload['status'],
        'stock_crypto_experiments':len(reports),
+       'stock_sources':stock_sources, 'stock_symbols_analyzed':len(stock_history),
+       'crypto_symbols_analyzed':len(crypto),
        'paper_strategy_status':paper_summary.get('status','not_run'),
        'opportunity_diagnostic_status':opportunity.get('status','not_run'),
        'wave_bottom_audit_status':wave_bottom_summary.get('status','not_run'),
@@ -328,7 +341,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     _dump(root/'reports'/'crypto_transfer_latest.json',payload)
     _append_daily_audit(root/'reports'/'crypto_transfer_history.jsonl',payload)
     # Visible status summary separate from the enormous transfer-audit JSON.
-    print('SMARTSTOCK_10_11_2_HEALTH '+json.dumps({
+    print('SMARTSTOCK_10_12_HEALTH '+json.dumps({
         'overall':payload['status'],
         'transfer_experiments':len(reports),
         'novel_patterns':novel_summary.get('status'),
@@ -340,7 +353,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         'data_issues':len(failure),
         'models_auto_deployed':False, 'bottom_watch':wave_bottom_summary.get('current_candidates',0)},ensure_ascii=False))
     if failure:
-        print('::warning title=SmartStock 10.11.2 partial analysis::'+
+        print('::warning title=SmartStock 10.12 partial analysis::'+
               str(len(failure))+' data/model subsystem errors. Review report JSON; job is not a complete success.')
     # Full research data is in reports/crypto_transfer_latest.json, NOT stdout.
     # Short structured telemetry avoids logs flooding 20,000+ characters.

@@ -21,7 +21,7 @@ CORE = (
     'paper_audit.py','pattern_discovery.py','point_in_time.py',
     'preflight.py','research.py','risk_engine.py','scheduled_scan.py',
     'sec_backfill.py','sec_history.py','stock_data_provider.py','strict_validation.py','timeframe.py',
-    'v8_features.py','wave_bottoms.py','wave_bottom_audit.py',
+    'v8_features.py','wave_bottoms.py','wave_bottom_audit.py','system_check.py',
 )
 
 
@@ -36,6 +36,27 @@ def check(root:Path)->dict:
             except (SyntaxError,UnicodeError) as e:syntax_errors.append(f'{name}: {str(e)[:130]}')
     cfg=root/'config'/'watchlist.txt'
     if not cfg.is_file():missing.append('config/watchlist.txt')
+    if not (root/'requirements.txt').is_file():missing.append('requirements.txt')
+    # Detect newly imported local modules that have been omitted from CORE.
+    # Imports from Python stdlib and installed dependencies are excluded.
+    third_party={'numpy','pandas','sklearn','scipy','plotly','streamlit','yfinance','requests','pytest'}
+    stdlib=getattr(sys,'stdlib_module_names',set()) | {'__future__'}
+    for name in CORE:
+        f=root/name
+        if not f.is_file():continue
+        try:tree=ast.parse(f.read_text(encoding='utf-8'))
+        except (SyntaxError,UnicodeError):continue
+        for node in ast.walk(tree):
+            if isinstance(node,ast.ImportFrom) and node.module and node.level==0:
+                mods=[node.module.split('.')[0]]
+            elif isinstance(node,ast.Import):
+                mods=[alias.name.split('.')[0] for alias in node.names]
+            else:continue
+            for mod in mods:
+                if mod in third_party or mod in stdlib or mod.startswith('_'):continue
+                if (root/(mod+'.py')).is_file() or (root/mod).is_dir():continue
+                item=f'{name}: import {mod}.py (파일 없음)'
+                if item not in missing:missing.append(item)
     status='ok' if not missing and not syntax_errors else 'failed'
     return {'status':status,'missing':missing,'syntax_errors':syntax_errors,
             'files_checked':len(CORE),'note':'정적 파일 점검. 실제 수집·학습 성공을 뜻하지 않음'}
@@ -45,7 +66,7 @@ def main():
     state=check(Path(__file__).resolve().parent)
     print('SMARTSTOCK_PREFLIGHT '+json.dumps(state,ensure_ascii=False))
     if state['status']!='ok':
-        print('10.11.2 통합 복구 ZIP의 프로그램 파일을 같은 폴더에 설치하고 다시 실행하세요.',file=sys.stderr)
+        print('10.12 통합 업데이트 ZIP의 프로그램 파일을 같은 폴더에 설치하고 다시 실행하세요.',file=sys.stderr)
         return 2
     return 0
 
