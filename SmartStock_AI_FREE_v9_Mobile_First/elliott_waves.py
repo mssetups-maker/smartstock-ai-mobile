@@ -102,12 +102,35 @@ def _invalidation(nodes: list[dict], direction: int, last_label: str) -> dict[st
     return {'price':round(float(lookup[key]['value']),4),'description':message}
 
 
+def _live_invalidation(prices: pd.DataFrame, pivot: dict, seq: list[dict], direction: int) -> dict | None:
+    """Check ALL subsequent wick extremes, not just the closing price.
+
+    Standard impulses only; overlap-allowing diagonals are not modeled.
+    No assumption is made about the end of an unfinished corrective wave.
+    """
+    tail=prices.iloc[int(pivot['position'])+1:]
+    if tail.empty:return None
+    last=str(len(seq)-1)
+    if last=='1':basis=seq[0];rule='2파의 0파 시작점 침범'
+    elif last=='2':basis=seq[2];rule='3파 진행 후보의 2파 저점/고점 역행'
+    elif last=='3':basis=seq[1];rule='4파가 1파 가격 영역 침범 (일반 충격파 무효)'
+    elif last=='4':basis=seq[4];rule='5파 후보의 4파 극점 역행'
+    else:return None
+    threshold=float(basis['value'])
+    offending=tail['Low'].astype(float).min() if direction==1 else tail['High'].astype(float).max()
+    crossed=offending<=threshold+1e-9 if direction==1 else offending>=threshold-1e-9
+    if not crossed:return None
+    return {'rule':rule,'threshold':round(threshold,4),'observed':round(float(offending),4),
+            'last_confirmed':last}
+
+
 def estimate_wave(prices: pd.DataFrame, order: int = 5, lookback: int = 420) -> dict[str, Any]:
     """Return anchored candidate and diagnostic reasons; never force a wave count."""
     empty = {'status':'판정 보류','direction':None,'phase':None,'current':'파동 번호 미확정',
              'nodes':[],'anchors':[],'invalidation':_invalidation([],1,''),
              'notes':'확정된 고점·저점 또는 기본 충격파 규칙을 충족하는 구간이 부족합니다.',
-             'confirmed_through':None,'order':order,'pivot_count':0}
+             'confirmed_through':None,'order':order,'pivot_count':0,
+             'invalidated_candidates':0,'invalidation_event':None}
     if not isinstance(prices,pd.DataFrame) or len(prices)<45 or not {'Low','High','Close'}.issubset(prices.columns):
         return empty
     if order not in (3,5,8,12):
@@ -123,6 +146,7 @@ def estimate_wave(prices: pd.DataFrame, order: int = 5, lookback: int = 420) -> 
     median_price = float(candles['Close'].tail(40).median())
     move_threshold=max(0.003*median_price, 1e-8)
     candidates=[]
+    invalid_events=[]
     for start in range(len(recent)-3):
         for length in (4,5,6):
             if start+length>len(recent):continue
@@ -139,9 +163,25 @@ def estimate_wave(prices: pd.DataFrame, order: int = 5, lookback: int = 420) -> 
                 end=ext[-1] if ext else seq[-1]
                 bars_since=len(candles)-1-end['position']
                 if bars_since>max(order*6,45):continue
+                # A confirmed 0-3 sequence is NOT a valid present 4-wave
+                # hypothesis if subsequent lows/highs have broken wave 1.
+                # Verify the last completed pivot, even if it has not yet
+                # produced another confirmed swing.
+                live_break=_live_invalidation(candles,end,seq+ext,direction)
+                if live_break is not None:
+                    invalid_events.append(live_break)
+                    continue
                 score=(end['position']*10 + (len(seq)+len(ext))*2)
                 candidates.append((score,seq,ext,direction))
     if not candidates:
+        result['invalidated_candidates']=len(invalid_events)
+        if invalid_events:
+            event=invalid_events[-1]
+            result['invalidation_event']=event
+            result['notes']=(f'기존 파동 후보 {len(invalid_events)}개가 후속 캔들에서 무효화됐습니다. '
+                 f'최근 사례: {event["rule"]} · 기준 {event["threshold"]:,.2f}, '
+                 f'관측 {event["observed"]:,.2f}. 해당 파동 번호는 차트에 표시하지 않습니다.')
+            return result
         result['notes']='최근 확정된 스윙에서 2파 되돌림·3파 확장·4파 비중첩 조건을 함께 만족하는 표준 충격파 후보를 찾지 못했습니다. 대각형·복합조정·연장파 등은 자동 판정하지 않습니다.'
         return result
     _, impulse, corr, direction=max(candidates,key=lambda item:item[0])
@@ -161,6 +201,7 @@ def estimate_wave(prices: pd.DataFrame, order: int = 5, lookback: int = 420) -> 
     anchor0=nodes[0]
     inv=_invalidation(chosen,direction,last)
     result.update(status='후보',direction=direction,phase=phase,current=current,
+        invalidated_candidates=len(invalid_events),
         nodes=nodes,anchors=[{'기준':'0파 시작','날짜':anchor0['날짜'],'가격':anchor0['가격']},
                              {'기준':'마지막 확정 스윙 ('+last+')','날짜':nodes[-1]['날짜'],'가격':nodes[-1]['가격']}],
         invalidation=inv,confirmed_through=nodes[-1]['날짜'],

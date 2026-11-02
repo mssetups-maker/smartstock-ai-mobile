@@ -23,11 +23,15 @@ from options_engine import analyze_options, pick_expiry
 from intelligence import fundamentals_snapshot, news_headline_score, build_llm_context
 from research import adaptive_signals, wave_candidates, free_explanation
 from elliott_waves import estimate_wave, attach_wave_traces
+from chart_patterns import detect_patterns, attach_pattern_traces, pattern_description
+from pattern_discovery import latest_match
 from local_ai import explain_with_ollama
 from explain_chat import answer_question, call_gemini, buy_conditions_answer, conditions
 from journal import update_journal
 from strict_validation import audit_history
 from risk_engine import data_audit, risk_report, hypothetical_size, historical_stress, compare_market
+from market_decision import evaluate_market, example_position, PROFILES
+from market_data_guard import daily_market_state
 from point_in_time import read_snapshots,join_observations
 from context_model import assess_context
 from sec_history import get_companyfacts,extract_filing_series,financial_features_asof
@@ -41,7 +45,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 10.2 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.9 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -319,7 +323,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.3</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.7</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -327,7 +331,8 @@ with st.expander('🤖 자동 학습·코인 연구 상태 (읽기 전용)', exp
     for report_path, title in [
        (Path(__file__).parent/'data'/'monitor_latest.json','예약 시장 감시'),
        (Path(__file__).parent/'reports'/'crypto_transfer_latest.json','코인→주식 전이학습 실험'),
-       (Path(__file__).parent/'reports'/'crypto_intraday_latest.json','코인 5분봉 학습·1시간 후 검증')]:
+       (Path(__file__).parent/'reports'/'crypto_intraday_latest.json','코인 5분봉 학습·1시간 후 검증'),
+       (Path(__file__).parent/'reports'/'novel_patterns_latest.json','AI 미분류 캔들패턴 발견 연구')]:
         st.markdown(f'**{title}**')
         if report_path.exists():
             try:
@@ -337,6 +342,9 @@ with st.expander('🤖 자동 학습·코인 연구 상태 (읽기 전용)', exp
                 if 'results' in state:
                     for r in state['results'][:6]:
                         st.write(f"{r.get('symbol','?')}: {r.get('status','미검증')} · {r.get('reason','')}")
+                if 'markets' in state:
+                    for market,info in state['markets'].items():
+                        st.caption(f"{market}: 조사 {len(info.get('experiments',[]))}개 · 검증 통과 연구 후보 {info.get('validated_research_candidates',0)}개 (매매 신호 아님)")
                 if 'crypto_5min_evaluations' in state:
                     for coin,info in state['crypto_5min_evaluations'].items():
                         st.caption(f"{coin}: 기록 {info.get('observations',0)}개 · {info.get('status','확인 필요')} · 독립검증 {info.get('independent_test_cases',0)}건")
@@ -367,6 +375,22 @@ with st.expander('🪙 비트코인·이더리움·솔라나 차트', expanded=F
         fig.update_layout(height=320,margin=dict(l=3,r=3,t=10,b=15),
             xaxis_rangeslider_visible=False,template='plotly_dark',xaxis_title='UTC',yaxis_title='KRW')
         st.plotly_chart(fig,use_container_width=True)
+        try:
+            rpt_path=Path(__file__).parent/'reports'/'novel_patterns_latest.json'
+            if rpt_path.exists():
+                import json
+                rpt=json.loads(rpt_path.read_text(encoding='utf-8'))
+                market_type='crypto_5min' if crypto_interval=='5분봉' else 'crypto_daily'
+                matched=latest_match(d,rpt,market=market_type,horizon=12 if market_type=='crypto_5min' else 5)
+                with st.expander('🧬 AI가 찾은 이름 없는 코인 캔들패턴',expanded=False):
+                    if matched:
+                        for motif in matched:
+                            st.markdown(f"**{motif['name']}** · {motif['status']}")
+                            st.caption(f"검증: {motif['holdout_cases']}건 · 방향 후보 {motif['direction']} · 매수/매도 신호 아님")
+                    else:st.info('이번 코인 차트의 끝 부분과 일치하는 검증 가능한 군집 후보가 없습니다.')
+            else:st.caption('신규 패턴 발견은 GitHub Actions daily 첫 실행 후 표시됩니다.')
+        except (ValueError,KeyError,TypeError,OSError) as nov_err:
+            st.caption(f'코인 새 패턴 연구 기록 확인 불가: {str(nov_err)[:100]}')
         st.caption(f'확정된 최근 캔들: {d.index[-1]} UTC · 지연된 무료 데이터일 수 있습니다.')
 
 if 'symbol' not in st.session_state:
@@ -466,15 +490,18 @@ try:
         raw_df.index=pd.to_datetime(raw_df.pop(date_col),errors='coerce')
         raw=clean_prices(raw_df)
         source='업로드한 CSV'
+        last_bar_note='업로드 CSV는 실제 마감 여부를 검증할 수 없습니다.'
     elif use_demo:
         raw_df=pd.read_csv(Path(__file__).with_name('demo_synthetic.csv'),parse_dates=['Date'],index_col='Date')
         raw=clean_prices(raw_df)
         source='가상의 시뮬레이션 데이터'
         is_demo=True
+        last_bar_note='가상 데이터의 봉 마감 상태는 실시간 시장과 무관합니다.'
     else:
         with st.spinner(f'{symbol} 과거 시세 불러오는 중...'):
             raw=load_prices(symbol)
         source='Yahoo Finance 일봉 (지연 가능)'
+        raw,last_bar_note=daily_market_state(raw,symbol)
     if len(raw)<90:raise ValueError('분석 가능한 일봉 데이터가 90개 미만입니다. 티커 또는 CSV를 확인하세요.')
 except Exception as ex:
     st.error(f'가격 데이터를 가져오지 못했습니다: {ex}')
@@ -489,6 +516,22 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
     adapted=adaptive_signals(df,horizon_days=horizon_days)
     waves=wave_candidates(df)
     numbered_waves = estimate_wave(df, order=5)
+    patterns_daily = detect_patterns(raw, pivot_span=3)
+    novel_matches=[]
+    novel_report=None
+    try:
+        import json
+        novel_report_path=Path(__file__).parent/'reports'/'novel_patterns_latest.json'
+        if novel_report_path.exists():
+            novel_report=json.loads(novel_report_path.read_text(encoding='utf-8'))
+            # Do not present old discovery prototypes as current matches.
+            observed_at=pd.to_datetime(novel_report.get('timestamp_utc'),utc=True,errors='coerce')
+            research_is_fresh=(pd.notna(observed_at) and
+                               pd.Timedelta(0)<=pd.Timestamp.now(tz='UTC')-observed_at<=pd.Timedelta(hours=48))
+            if novel_report.get('status')=='ok' and research_is_fresh:
+                novel_matches=latest_match(raw,novel_report,market='stocks',horizon=(5 if horizon_days<=5 else 21))
+    except (OSError,ValueError,KeyError,TypeError):
+        novel_report=None
     health=data_audit(raw)
     risk=risk_report(raw,res.levels)
     if health.status=='차단' or is_demo or uploaded is not None:
@@ -497,10 +540,41 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
     res.recommendation=strict.recommendation
     res.explanation=strict.explanation
 
+# Three distinct entry strategies are evaluated without changing the strict ML gate.
+trade_profile=st.selectbox('🎯 매매 분석 성향',list(PROFILES),index=1,
+    help='기본: 균형형. 매수 후보는 사전 지정한 규칙과 과거 실험으로 설명하고, 검증 부족 시 모의매매 전용으로 표시합니다.',
+    key='trade_profile_107')
+trade_plan=evaluate_market(raw,horizon=horizon_days,score=res.probability,
+    strict_recommendation=strict.recommendation,quality=health.status,
+    symbol=symbol,profile=trade_profile,hypothetical=(is_demo or uploaded is not None))
+
+# 10.9: transparent background-job health, never equate process exit with learning.
+_health_file=Path(__file__).parent/'reports'/'system_health_latest.json'
+if _health_file.exists():
+    try:
+        import json as _json109
+        _diag109=_json109.loads(_health_file.read_text(encoding='utf-8'))
+        _diag_status=_diag109.get('status','확인 불가')
+        with st.expander('🩺 10.9 자동연구·학습 상태 진단',expanded=_diag_status!='ok'):
+            st.caption(f'최종 실행: {_diag109.get("timestamp_utc","?")} · 결과: {_diag_status}')
+            _diag_stamp=pd.to_datetime(_diag109.get('timestamp_utc'),utc=True,errors='coerce')
+            if (pd.isna(_diag_stamp) or pd.Timestamp.now(tz='UTC')-_diag_stamp>pd.Timedelta(hours=48)):
+                st.warning('마지막 연구 기록이 48시간 이상 오래되었습니다. 최근 예약작업·GitHub 저장 성공을 확인하세요.')
+            if _diag_status!='ok':
+                st.warning(f'일부 분석 모듈이 실패했거나 누락됐습니다. 오류 {_diag109.get("failure_count",0)}건, GitHub Actions 로그를 확인하세요.')
+            st.caption('전이학습 실험 '+str(_diag109.get('stock_crypto_experiments','?'))+'건 · '
+                 '모의검증 '+str(_diag109.get('paper_strategy_status','?'))+' · '
+                 '예측 사후평가 '+str(_diag109.get('ml_forward_status','?'))+' · '
+                 '패턴연구 '+str(_diag109.get('pattern_research_status','?')))
+            st.caption('AI 모델은 자동 교체되지 않습니다. 작업 성공은 수익성·예측력 검증과 다릅니다.')
+    except (OSError,ValueError,TypeError) as _diagerr:
+        st.warning('자동연구 상태 파일을 읽지 못했습니다. GitHub 저장 기록을 확인하세요.')
+
 spot=float(raw['Close'].iloc[-1]); date=raw.index[-1].strftime('%Y-%m-%d')
 price_delta=float(raw['Close'].iloc[-1]/raw['Close'].iloc[-2]-1)*100
 st.markdown(f'### {"🧪 시연용 가상 종목" if is_demo else POPULAR.get(symbol,symbol)} · {symbol}')
-st.caption(f'{date} 기준 확정 일봉 · 출처: {source} · 예측 {horizon_days}거래일')
+st.caption(f'{date} 기준 분석 일봉 · 출처: {source} · 예측 {horizon_days}거래일')
+st.caption('📅 봉 마감 확인: '+last_bar_note)
 if is_demo:
     st.warning('시연용 가상 가격입니다. 실제 종목 분석으로 보지 마세요.')
 if health.status=='차단' and not is_demo:
@@ -519,6 +593,107 @@ if strict.recommendation=='판단 보류':
 else:
     st.success(f'**검증 기반 참고 신호: {strict.recommendation}** · {horizon_days}거래일')
 st.caption('상승점수는 실제 수익 확률이 아닙니다. 예측의 정확성 및 수익 보장 없음.')
+# A research watchlist is separate from the strict ML prediction recommendation.
+st.markdown('#### 🎯 AI 매매 기회 탐색 · 10.9')
+st.markdown(f'**현재 기회 단계: {trade_plan.stage}** · 전략: {trade_plan.strategy_name}')
+st.caption('여기서 시험 매수는 **실거래 권유가 아닌 모의매매 후보**입니다. AI 방향점수는 실제 상승확률이 아닙니다.')
+if trade_plan.blocks:
+    st.warning('품질·위험 주의: '+' / '.join(trade_plan.blocks))
+with st.expander('📋 왜 이 단계인가? 전략별 검증·진입 조건',expanded=False):
+    for reason in trade_plan.reasons:
+        st.write('• '+reason)
+    st.caption('각 전략 실험은 신호가 확정된 **다음 일봉 시가**에 진입, 손절·목표 또는 선택 기간 종료에 청산한다고 가정합니다. 양쪽에 동시에 닿으면 손절을 먼저 처리합니다. 왕복 0.3% 비용 포함, 시장 충격·실제 주문은 포함되지 않습니다.')
+    for x in trade_plan.stats:
+        tag='과거 기준 통과(연구용)' if x.passed else '검증 미통과'
+        st.markdown(f'**{x.name} — {tag}**')
+        st.caption(f'중복 제거한 신호 {x.occurrences}건 / 기간 앞쪽 {x.training_count}건 / 뒤쪽 {x.holdout_count}건'
+          + (' · 뒤쪽 평균 순수익 '+f'{x.holdout_avg_net:+.1%}' if x.holdout_avg_net is not None else '')+' · '+x.reason)
+if trade_plan.entry is not None:
+    ea,sl,tp=st.columns(3,gap='small')
+    ea.metric('진입 참고',price_str(trade_plan.entry,symbol))
+    sl.metric('손절 참고',price_str(trade_plan.stop,symbol))
+    tp.metric('1차 목표',price_str(trade_plan.target1,symbol))
+    st.caption(f'계획 손익비 {trade_plan.reward_risk:.1f}:1 · 2차 목표 {price_str(trade_plan.target2,symbol)} · 거래별 위험 예산 자산의 {trade_plan.risk_pct:.2f}% (갭하락 시 초과 가능)')
+    with st.expander('💵 가상 포지션 규모 계산 · 자동 주문 아님',expanded=False):
+        paper_capital=st.number_input('가상 투자금(주가 표시 통화와 동일)',100.,10000000.,10000.,1000.,key='trade_capital_107')
+        cost=st.number_input('왕복 거래비용(%)',0.,5.,.3,.1,key='trade_cost_107')
+        size=example_position(trade_plan,paper_capital,cost)
+        st.metric('계획 위험 예산 이내 주식 수',f'{size["shares"]:,}주')
+        st.caption(f'최대 투자비중 {trade_plan.max_alloc_pct:.0f}% · 손절가에서 체결된다는 보장 없음, 갭/실제 수수료/세금에 따라 손실 확대 가능')
+else:
+    st.caption('현재 확정 매수 전략 조건이 없어 진입·손절·목표를 억지로 생성하지 않습니다.')
+
+
+# 10.8 prospective monitor is a completely separate PAPER-ONLY record.
+# GitHub's daily job writes the files; viewing a ticker does not cause a
+# backdated prediction to be inserted into historical performance.
+with st.expander('📒 10.8 · 실제 이후 관측으로 평가하는 모의매매 성적', expanded=False):
+    st.caption('과거 백테스트와 별도입니다. 신호를 먼저 기록하고, 그 뒤 새롭게 관측된 봉만 평가합니다. 자동 주문 없음.')
+    _paper_path=Path(__file__).parent/'reports'/'paper_strategy_summary.json'
+    try:
+        if _paper_path.exists():
+            import json as _json
+            _paper=_json.loads(_paper_path.read_text(encoding='utf-8'))
+            _asof=_paper.get('last_checked_day_utc') or _paper.get('generated_utc','')[:10]
+            st.caption(f'마지막 기록 확인: {_asof} (UTC) · 모의매매 전용 · AI 학습 확률 아님')
+            if _asof and (pd.Timestamp.now(tz='UTC').date()-pd.Timestamp(_asof).date()).days>=3:
+                st.warning('최근 3일 이내 학습·모의매매 기록이 갱신되지 않았습니다. GitHub Actions 실행 상태를 점검하세요.')
+            a,b,c=st.columns(3)
+            a.metric('이후 관측 완료',f"{_paper.get('settled',0)}건")
+            b.metric('평가 대기',f"{_paper.get('pending',0)}건")
+            c.metric('현재 누적 신호',f"{_paper.get('total_logged',0)}건")
+            n=_paper.get('settled',0)
+            if n>=20:
+                st.write(f"완료된 모의 거래 승률: {_paper.get('win_rate_pct')}% · 평균 수익(비용 차감): {_paper.get('average_net_return_pct')}%")
+                interval=_paper.get('win_rate_wilson95_pct')
+                if interval:st.caption(f'단순 승률의 95% Wilson 참고 구간: {interval[0]}~{interval[1]}% (독립 표본 보장 아님)')
+            else:
+                st.info('아직 평가 완료 표본이 20건 미만입니다. 승률과 정확도를 판단할 수 없습니다.')
+            for key, name in [('breakout','상방 돌파'),('pullback','눌림목'),('rebound','단기 반등')]:
+                s=_paper.get('by_strategy',{}).get(key,{})
+                st.caption(f"{name}: 완료 {s.get('settled',0)}건 · 평균 모의 순수익 {s.get('average_net_pct','—')}%")
+            _sym=_paper.get('by_symbol',{}).get(symbol)
+            if _sym:
+                st.markdown(f'**현재 종목 {symbol}의 이후 평가**')
+                st.caption(f"완료 {_sym.get('settled',0)}건 · 평가 대기 {_sym.get('pending',0)}건 · 평균 순수익 {_sym.get('average_net_pct') if _sym.get('average_net_pct') is not None else '—'}%")
+            if _paper.get('drift_warning'):
+                st.warning(_paper['drift_warning'])
+            if _paper.get('errors'):
+                st.warning(f"수집·검증 일부 실패: {len(_paper['errors'])}건. GitHub Actions에서 세부 내역을 확인하세요.")
+            st.caption('이 결과는 중복되거나 연관된 종목별 가상 거래를 합산한 통계이며, 자산 전체의 실전 수익률이 아닙니다. 갭·가격 수정·기업행동·비용 변동·체결오차에 따라 실제 손익은 달라집니다.')
+        else:
+            st.info('모의매매 전진 검증 기록이 아직 없습니다. 10.9 설치 후 GitHub Actions의 daily를 실행하면 첫 기록을 생성합니다.')
+    except (OSError,ValueError,TypeError,KeyError) as exc:
+        st.warning(f'모의매매 성적 파일을 읽을 수 없습니다: {str(exc)[:120]}')
+
+with st.expander('🧠 10.8 · 그날 AI 상승점수의 실제 예측 성적', expanded=False):
+    st.caption('그날 기록한 AI 점수를 바꾸지 않고, 이후 5·21거래일이 지나서 실제 방향을 채점합니다. 백테스트와 별도이며 보정된 확률이 아닙니다.')
+    _mlfile=Path(__file__).parent/'reports'/'forward_ml_summary.json'
+    try:
+        if not _mlfile.exists():
+            st.info('미래 예측 사후검증 기록이 아직 없습니다. GitHub Actions daily를 실행한 다음 실제 시간이 경과해야 평가 건수가 쌓입니다.')
+        else:
+            import json as _mljson
+            _ml=_mljson.loads(_mlfile.read_text(encoding='utf-8'))
+            st.caption('마지막 실행 확인(UTC): '+str(_ml.get('last_checked_day_utc','—')))
+            if _ml.get('last_checked_day_utc') and (pd.Timestamp.now(tz='UTC').date()-pd.Timestamp(_ml['last_checked_day_utc']).date()).days>=3:
+                st.warning('예측 기록이 최근 3일 동안 갱신되지 않았습니다. GitHub Actions와 가격 수집을 확인하세요.')
+            a,b=st.columns(2)
+            a.metric('평가 완료',f"{_ml.get('settled',0)}건")
+            b.metric('결과 대기',f"{_ml.get('pending',0)}건")
+            for h in ('5','21'):
+                stats=_ml.get('by_horizon',{}).get(h,{})
+                n=stats.get('n',0)
+                if n>=20:
+                    st.write(f"**{h}거래일**: {n}건 · 방향 일치 {stats.get('accuracy_pct')}% · Brier 점수 {stats.get('brier')} (0.5 고정 기준 0.25)")
+                else:
+                    st.caption(f'{h}거래일: 완료 {n}건 · 검증 표본 부족 (권장 최소 20건)')
+            ticker=_ml.get('by_symbol',{}).get(symbol,{})
+            st.caption(f"현재 종목 {symbol} 사후평가 완료: {ticker.get('n',0)}건")
+            if _ml.get('errors'):st.warning(f"예측 기록/평가 일부 실패: {len(_ml['errors'])}건. GitHub 로그 확인 필요.")
+            st.caption('Brier는 작을수록 유리하지만, 관측 횟수·시장 국면·상관된 표본·거래비용에 따라 해석이 달라집니다. 새 모델을 자동 승격하지 않습니다.')
+    except (OSError,ValueError,TypeError,KeyError) as exc:
+        st.warning(f'예측 사후검증 파일을 읽을 수 없습니다: {str(exc)[:120]}')
 
 # Beginner-friendly grounded question assistant, built on the CURRENT displayed
 # ticker and audit. No API key is needed for default explanatory answers.
@@ -543,9 +718,15 @@ _explain_snapshot = {
     'macd_hist':float(_last_ind['MACD_hist']) if pd.notna(_last_ind['MACD_hist']) else None,
     'stoch_k5':float(_last_ind['STO_K5']) if pd.notna(_last_ind['STO_K5']) else None,
     'stoch_d5':float(_last_ind['STO_D5']) if pd.notna(_last_ind['STO_D5']) else None,
-    'levels':{k:float(v) for k,v in res.levels.items() if isinstance(v,(int,float)) and math.isfinite(float(v))},
+    'levels':({
+       'entry':trade_plan.entry,'stop':trade_plan.stop,'tp1':trade_plan.target1,'tp2':trade_plan.target2
+    } if trade_plan.entry is not None else {}),
     'options':_option_snapshot,
-    'elliott':numbered_waves,
+    'elliott':numbered_waves, 'patterns':patterns_daily, 'pattern_interval':'일봉',
+    'novel_patterns':novel_matches,
+    'trade_stage':trade_plan.stage, 'trade_profile':trade_plan.profile,
+    'trade_strategy':trade_plan.strategy_name, 'trade_reasons':trade_plan.reasons,
+    'trade_blocks':trade_plan.blocks, 'last_bar_note':last_bar_note,
 }
 with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 용어 / 차트 설명', expanded=False):
     st.caption('무료 기본 해설은 현재 분석값과 금융 용어를 연결하는 규칙형 답변입니다. 모든 질문을 이해하는 생성형 AI는 아닙니다.')
@@ -556,7 +737,7 @@ with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 �
     question_focus=st.selectbox('질문 대상',[
         '현재 판단','매수 조건','옵션 전체','풋/콜 비율 PCR','미결제약정 OI',
         '내재변동성 IV','Max Pain','콜월·풋월','그릭스',
-        '목표가·손절가','RSI','MACD','스토캐스틱','엘리엇 파동'],
+        '목표가·손절가','RSI','MACD','스토캐스틱','엘리엇 파동','차트패턴·돌파'],
         help='“저게 뭐야?”처럼 대상을 생략해도 이 선택을 기준으로 답할 수 있습니다.',
         key='explain_question_focus')
     qa1,qa2,qa3=st.columns(3,gap='small')
@@ -645,11 +826,14 @@ active_section=mobile_page(section_top,section_detail)
 
 if active_section=='chart':
     st.caption('차트를 손가락으로 밀거나 확대할 수 있습니다. 봉 주기는 화면 위쪽에서 바꿉니다.')
-    st.markdown('#### 자동 목표가 · 손절 참고가격')
-    topa,topb=st.columns(2,gap='small')
-    topa.metric('1차 목표 (TP1)',price_str(res.levels['tp1'],symbol))
-    topb.metric('손절 참고가 (SL)',price_str(res.levels['stop'],symbol))
-    st.caption(f'2차 목표가 {price_str(res.levels["tp2"],symbol)} · 롱 포지션 가정, 자동 주문 아님')
+    st.markdown('#### 10.7 전략별 목표가 · 손절 참고가격')
+    if trade_plan.entry is not None:
+        topa,topb=st.columns(2,gap='small')
+        topa.metric('전략 1차 목표',price_str(trade_plan.target1,symbol))
+        topb.metric('전략 손절 참고가',price_str(trade_plan.stop,symbol))
+        st.caption(f'2차 목표가 {price_str(trade_plan.target2,symbol)} · {trade_plan.strategy_name} · 종가 기준 시나리오 · 매수 신호 검증과 별도')
+    else:
+        st.info('현재 확인된 돌파·눌림목·반등 전략이 없어 매매 전략 목표가와 손절가를 표시하지 않습니다. 기존 순수 ATR/스윙 가격 참고는 위험관리 메뉴에서 확인할 수 있습니다.')
 
 if active_section in ('forecast','model'):
     with st.expander('📋 AI 과거 검증 결과 확인',expanded=False):
@@ -681,12 +865,15 @@ if active_section=='chart':
         show_cloud=aa.checkbox('일목 구름',value=True,key='chart_cloud')
         show_bb=bb.checkbox('볼린저',value=False,key='chart_bollinger')
         show_waves=aa.checkbox('엘리엇 파동 번호·기준점',value=True,key='chart_elliott')
+        show_patterns=bb.checkbox('차트패턴 기준선·목표가',value=True,key='chart_patterns')
+        show_novel=aa.checkbox('AI가 발견한 새 캔들 군집',value=True,key='chart_novel_patterns')
         wave_sensitivity=bb.selectbox('파동 민감도 (봉 수)',[3,5,8,12],index=1,key='chart_wave_sensitivity',
           help='3=세밀한 파동, 12=큰 파동. 최근 N봉은 확정 저점·고점으로 인정하지 않습니다.')
     display_interval=chart_interval
     if (is_demo or uploaded is not None) and display_interval!='일봉':
         st.warning('가상/업로드 CSV는 일봉만 포함합니다. 다른 주기의 가격을 만들어내지 않고 일봉을 표시합니다.')
         display_interval='일봉'
+    patterns_for_display=[]
     try:
         if display_interval=='일봉' or is_demo or uploaded is not None:
             shown=raw
@@ -695,19 +882,81 @@ if active_section=='chart':
         figure=multi_chart(shown,display_interval,ma=show_ma,stochastic=show_stoch,
                       trendlines=show_trend,volume=show_volume,limit=chart_days,
                       ichimoku=show_cloud,bollinger=show_bb,
-                      daily_trade_levels=res.levels if display_interval=='일봉' else None)
+                      daily_trade_levels=None) # 10.9: generic objectives must NOT look like approved entries
+        if display_interval=='일봉' and trade_plan.entry is not None and trade_plan.candidate:
+            # These are research-only daily price references, not live orders.
+            for val,label,color in ((trade_plan.stop,'모의 전략 손절','#fb7185'),
+                                    (trade_plan.target1,'모의 전략 목표','#34d399')):
+                figure.add_hline(y=val,line_dash='dot',line_color=color,line_width=1,
+                                 annotation_text=label,annotation_position='top right',row=1,col=1)
         wave_display=estimate_wave(shown,order=wave_sensitivity) if show_waves else None
+        patterns_for_display=detect_patterns(shown,pivot_span=3)
         if wave_display and wave_display.get('nodes'):
             figure=attach_wave_traces(figure,wave_display,cutoff=shown.index[max(0,len(shown)-chart_days)],latest=(shown.index[-1],shown.Close.iloc[-1]))
+        if show_patterns and patterns_for_display:
+            figure=attach_pattern_traces(figure,patterns_for_display,shown,
+                cutoff=shown.index[max(0,len(shown)-chart_days)])
+        if show_novel and display_interval=='일봉' and novel_matches:
+            # Shade only the latest window to avoid pretending a discovered
+            # motif has known historic boundaries on untrained timeframes.
+            top=novel_matches[0]
+            if len(shown)>=top['window']:
+                figure.add_vrect(x0=shown.index[-top['window']],x1=shown.index[-1],
+                                 fillcolor='rgba(186,126,255,0.13)',line_width=0,row=1,col=1)
         figure.update_layout(height=700 if show_stoch else 470,
             margin=dict(l=0,r=5,t=32,b=6),showlegend=False,dragmode='pan',
             font=dict(size=10),hovermode='x')
         st.plotly_chart(figure,use_container_width=True,
                         config={'displaylogo':False,'scrollZoom':True,'responsive':True,'displayModeBar':False})
         st.caption(f'{display_interval} 마지막 봉: {shown.index[-1]} (시세 제공처 지연 가능) · 실시간 체결 보장 없음')
+        if display_interval!='일봉':st.warning('분봉·시간봉의 마지막 봉은 미완성일 수 있습니다. 봉 확정 전의 돌파·패턴은 참고 후보입니다.')
     except Exception as chart_err:
         st.warning(f'{display_interval} 차트를 불러오지 못했습니다: {str(chart_err)[:220]}')
         st.info('무료 시세 공급처가 분봉 조회를 제한할 수 있습니다. 일봉을 선택하거나 다시 조회해 주세요.')
+    with st.expander('📐 차트패턴 자동 분석 · 돌파 기준·목표가·무효화',expanded=True):
+        st.caption(f'판별 대상: {display_interval} · 수신한 봉의 종가 기준(마지막 봉 마감 여부 별도 확인) · 규칙형 패턴 후보이며 학습된 상승확률이 아닙니다.')
+        if not patterns_for_display:
+            st.info('최근 가격에서 규칙을 만족하는 패턴을 확인하지 못했습니다. 패턴이 없다고 추세가 없다는 뜻은 아닙니다.')
+        else:
+            for pattern_item in patterns_for_display:
+                st.markdown(f'**{pattern_item["name"]} · {pattern_item["state"]}**')
+                c_left,c_right=st.columns(2)
+                c_left.metric('기준선',price_str(pattern_item['level'],symbol))
+                c_right.metric('형성 기간',f"약 {pattern_item['bars']}봉")
+                if pattern_item['target'] is not None:
+                    t_left,t_right=st.columns(2)
+                    t_left.metric('높이 측정 목표(참고)',price_str(pattern_item['target'],symbol))
+                    t_right.metric('패턴 무효화(참고)',price_str(pattern_item['invalidation'],symbol) if pattern_item['invalidation'] is not None else '미확인')
+                else:
+                    st.caption('돌파가 확인되지 않아 목표가·무효화 가격은 확정하지 않았습니다.')
+                st.caption(pattern_description(pattern_item))
+                if len(patterns_for_display)>1:st.divider()
+        st.caption('서드파티 Trading Central 등의 고유 알고리즘이나 목표가와 동일하지 않습니다. 돌파선 재진입, 거래량, 장 마감 여부를 확인해야 하며 이 패턴은 단독 매수·매도 신호가 아닙니다.')
+    with st.expander('🧬 AI가 스스로 발견한 이름 없는 캔들패턴 · 검증',expanded=True):
+        st.caption('고정 이름(헤드앤숄더 등)으로 규칙화하지 않은 OHLCV 군집입니다. 군집은 데이터에서 생성하며 새 패턴이나 우위를 증명하는 것은 아닙니다.')
+        if novel_report is None:
+            st.info('발견 연구 결과가 없습니다. GitHub Actions에서 daily 작업을 한 번 실행한 뒤 reports/novel_patterns_latest.json 저장 여부를 확인하세요.')
+        else:
+            stamp=str(novel_report.get('timestamp_utc','?'))
+            if novel_report.get('status')!='ok':
+                st.warning('최근 새 패턴 연구 작업에 오류가 있거나 일부 시장 분석이 누락되었습니다. 보고서·Actions 로그를 확인하세요.')
+            elif not research_is_fresh:
+                st.warning('새 패턴 연구 기록이 48시간 이상 오래되어 현재 패턴 일치 판정을 중단했습니다. GitHub Actions daily 작업을 확인하세요.')
+            st.caption(f'마지막 연구: {stamp} · 전체 종목 공통 날짜 분할·중복 표본 제거·다중검정 보정')
+            stock_report=(novel_report.get('markets') or {}).get('stocks') or {}
+            stats=stock_report.get('experiments') or []
+            a,b=st.columns(2)
+            a.metric('발견·분석된 군집',f'{len(stats)}개')
+            b.metric('독립검증 통과 연구 후보',f"{stock_report.get('validated_research_candidates',0)}개")
+            if novel_matches:
+                for m in novel_matches:
+                    st.markdown(f"**{m['name']}**")
+                    st.caption(f"방향 연구 후보: {m['direction']} · 평가 {m['holdout_cases']}건 / 학습 {m['train_cases']}건 · 결과: {m['status']}")
+                    if m['holdout_hit_rate'] is not None:
+                        st.caption(f"과거 검증 방향 일치 {m['holdout_hit_rate']:.1%} · 학습 기간 기준선 {m['baseline_hit_rate_train']:.1%} · 보정 q={m['q_value']} (실제 미래 상승확률 아님)")
+            else:
+                st.info('현재 캔들 끝 부분과 비슷한 군집이 없거나, 거리·자료 기준을 충족하지 못했습니다.')
+            st.caption('연구 후보는 거래 신호에 자동 반영하지 않습니다. 종목·시기·시장 상황이 바뀌면 재검증해야 합니다.')
     st.info('아래 목표가·손절가와 AI 상승점수는 **일봉 기반**입니다. 분봉·시간봉으로 바꿔도 분봉용 AI 예측으로 전환되지 않습니다.')
     st.caption('손절·목표가는 최근 확정 스윙 저점/고점·ATR·손익비를 사용한 **롱 포지션 가정의 예시 가격**입니다. 이미 보유한 포지션의 실제 손절 주문은 아니며, 시장 상황에 따라 갱신됩니다. 스윙 추세선은 확정 지점으로만 표시합니다.')
     with st.expander('주요 보조지표 한눈에 보기'):
@@ -717,6 +966,9 @@ if active_section=='chart':
         st.markdown(f'**자동 판정: {displayed_wave["current"]}**')
         if displayed_wave['status']=='판정 보류':
             st.warning('현재 파동 번호를 신뢰할 만한 단일 충격파로 판정할 수 없습니다. 임의로 3파/5파를 만들지 않습니다.')
+            if displayed_wave.get('invalidation_event'):
+                detail=displayed_wave['invalidation_event']
+                st.error(f'기존 파동 시나리오 무효: {detail["rule"]} · 기준 {detail["threshold"]:,.2f}, 이후 극값 {detail["observed"]:,.2f}')
         else:
             st.caption(f'방향: {displayed_wave["phase"]} · 마지막 확정 기준점: {displayed_wave["confirmed_through"]}')
             st.dataframe(pd.DataFrame(displayed_wave['anchors']),hide_index=True,use_container_width=True)
@@ -779,7 +1031,7 @@ if active_section=='risk':
     left,right=st.columns(2)
     with left:
         portfolio=st.number_input('가상의 총 투자금(주가 표시 통화와 동일)',min_value=100.,value=10000.,step=1000.)
-        risk_pct=st.slider('한 번의 거래에서 감수할 최대 계획 손실',0.1,5.0,1.0,0.1,format='%.1f%%')
+        risk_pct=st.slider('한 번의 거래에서 감수할 최대 계획 손실',0.1,5.0,0.5,0.1,format='%.1f%%')
     with right:
         max_alloc=st.slider('이 종목에 넣을 최대 자산 비중',1,100,20,1,format='%d%%')
         fee_pct=st.number_input('예상 왕복 비용(%)',min_value=0.,max_value=5.,value=.3,step=.1)
@@ -1199,4 +1451,4 @@ if active_section=='quick':
     st.caption('프로그램 화면은 새로고침 시 분석하고, GitHub 예약 실행에서는 조건 변경 시 Telegram 메시지를 발송할 수 있습니다. 자동 알림 사용에는 개인 Bot Token과 Chat ID를 GitHub Secrets에 별도 등록해야 합니다.')
     st.info('자동 알림은 앱이 아닌 GitHub Actions의 정기 실행에 의존하므로 실시간 알림이 아니며, 설정하지 않으면 완전히 꺼져 있습니다.')
 
-st.caption('SmartStock AI FREE 10.2 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
+st.caption('SmartStock AI FREE 10.7 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')

@@ -55,9 +55,11 @@ def clean_prices(prices: pd.DataFrame) -> pd.DataFrame:
     df = df[expected].copy()
     for c in expected:
         df[c] = pd.to_numeric(df[c], errors='coerce')
-    df = df.replace([np.inf, -np.inf], np.nan).dropna(subset=['Open','High','Low','Close'])
-    df['Volume'] = df['Volume'].fillna(0).clip(lower=0)
-    df = df[(df['Close'] > 0) & (df['Low'] > 0)]
+    # Data errors must be caught BEFORE missing values are dropped or clamped.
+    # A contradictory OHLC row could otherwise create stochastic values >100.
+    from market_data_guard import check_ohlcv
+    check_ohlcv(df)
+    df['Volume'] = df['Volume'].fillna(0)
     df = df[~df.index.duplicated(keep='last')].sort_index()
     if isinstance(df.index, pd.DatetimeIndex):
         df.index = df.index.tz_localize(None) if df.index.tz is not None else df.index
