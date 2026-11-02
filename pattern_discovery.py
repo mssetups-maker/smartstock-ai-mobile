@@ -18,7 +18,7 @@ import pandas as pd
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.preprocessing import StandardScaler
 
-VERSION = '2026-10-25-discovery-1'
+VERSION = '2026-10-25-discovery-2-global-time-split'
 WINDOWS = (8, 16)
 PERIODS = {'stocks':(5,21), 'crypto_daily':(5,21), 'crypto_5min':(12,)}
 MIN_TRAIN=18
@@ -33,7 +33,9 @@ def normalize_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
     for col in cols: d[col]=pd.to_numeric(d[col],errors='coerce')
     if 'Volume' not in d:d['Volume']=0.
     d=d.replace([np.inf,-np.inf],np.nan).dropna(subset=['Open','High','Low','Close'])
-    d=d[(d[['Open','High','Low','Close']]>0).all(axis=1) & (d.High>=d.Low)]
+    d=d[(d[['Open','High','Low','Close']]>0).all(axis=1)
+        & (d.High>=d[['Open','Close','Low']].max(axis=1))
+        & (d.Low<=d[['Open','Close','High']].min(axis=1))]
     if d.empty:return d
     d['Volume']=d['Volume'].clip(lower=0).fillna(0)
     try:
@@ -68,30 +70,49 @@ def _features(d: pd.DataFrame, t: int, window: int) -> np.ndarray | None:
     return np.concatenate([r,body,upper,lower,v]).astype(float)
 
 
-def _examples(prices:dict[str,pd.DataFrame],window:int,horizon:int,cap:int=2300):
-    """Chronological local split per symbol, purged at the boundary by horizon."""
-    xx=[]; yy=[]; istrain=[]; symbols=[]; times=[]; positions=[]; splitmeta={}
-    for sym,raw in sorted(prices.items()):
+def _examples(prices:dict[str,pd.DataFrame], window:int, horizon:int, cap:int=2300):
+    """One calendar-time cutoff shared by ALL symbols in a market.
+
+    A per-symbol 68% split is unsafe: a newly listed stock's training
+    labels could be newer than an older stock's holdout predictions. This
+    global cutoff prevents that cross-symbol look-ahead. In addition, a
+    training sample's TARGET date must precede the cutoff, not only its
+    feature-observation date.
+    """
+    prepared={}; all_dates=[]
+    for sym, raw in sorted(prices.items()):
         d=normalize_ohlcv(raw)
         if len(d)<max(180,window+horizon*4):continue
         if len(d)>cap:d=d.tail(cap)
-        split=int(len(d)*.68)
+        prepared[sym]=d
+        all_dates.extend(d.index)
+    if not all_dates:return None,{}
+    calendar=sorted(set(all_dates))
+    if len(calendar)<max(180,window+horizon*4):return None,{}
+    cutoff=calendar[int(len(calendar)*.68)]
+    xx=[];yy=[];istrain=[];symbols=[];times=[];positions=[];splitmeta={}
+    for sym,d in prepared.items():
         stride=max(1,horizon//4)
-        splitmeta[sym]={'bars':len(d),'first':d.index[0].isoformat(),
-                       'last':d.index[-1].isoformat(),'split':d.index[split].isoformat()}
+        train_n=test_n=0
         for t in range(window+20,len(d)-horizon,stride):
-            # Purge training rows whose target reaches beyond test boundary.
-            train=t+horizon<split
-            test=t>=split
-            if not (train or test):continue
+            train=d.index[t+horizon]<cutoff  # label finished before holdout clock
+            test=d.index[t]>=cutoff
+            if not (train or test):continue  # purge boundary-crossing labels
             x=_features(d,t,window)
             if x is None or not np.isfinite(x).all():continue
             future=float(np.log(d.Close.iloc[t+horizon]/d.Close.iloc[t]))
             xx.append(x);yy.append(future);istrain.append(train)
             symbols.append(sym);times.append(d.index[t].isoformat());positions.append(t)
+            train_n+=int(train);test_n+=int(test)
+        splitmeta[sym]={'bars':len(d),'first':d.index[0].isoformat(),
+                        'last':d.index[-1].isoformat(),
+                        'split':cutoff.isoformat(),
+                        'training_cases':train_n,'holdout_cases':test_n,
+                        'global_calendar_split':True}
     if not xx:return None,splitmeta
     return {'X':np.vstack(xx),'y':np.asarray(yy),'train':np.asarray(istrain,dtype=bool),
-            'symbols':np.array(symbols),'times':times,'positions':np.asarray(positions)},splitmeta
+            'symbols':np.array(symbols),'times':times,
+            'positions':np.asarray(positions),'split_utc':cutoff.isoformat()},splitmeta
 
 
 def _effective_indices(ids, examples, horizon,window):
@@ -239,7 +260,7 @@ def research_batch(markets:dict[str,dict[str,pd.DataFrame]],timestamp=None):
     return {'timestamp_utc':timestamp or datetime.now(timezone.utc).isoformat(),
             'engine_version':VERSION,'research_only':True,
             'not_trading_signals':True,
-            'explanation':'시간순 학습/검증 분할; 완성된 미래 수익률만 평가; 겹치는 검증 결과 간격 제거; 다중검정 보정. 새로운 패턴의 발견과 실전 예측 개선은 별개.',
+            'explanation':'모든 종목에 동일한 시간 절단점으로 학습/검증 분할; 완성된 미래 수익률만 평가; 겹치는 검증 결과 간격 제거; 다중검정 보정. 새로운 패턴의 발견과 실전 예측 개선은 별개.',
             'markets':results,'errors':errors,
             'status':'ok' if results and not errors else 'partial' if results else 'failed'}
 

@@ -204,6 +204,12 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
                 'validated_candidates':v['validated_research_candidates'],
                 'holdout_cases':v['total_holdout_cases']} for k,v in new_research['markets'].items()},
             'errors':new_research['errors'],'forward_outcomes':prospective}
+        if new_research['status'] in ('failed','partial'):
+            failure.extend({'source':f"pattern_discovery/{r.get('market','?')}",
+                            'error':str(r.get('error','연구 처리 불가'))[:180]}
+                           for r in new_research.get('errors',[]))
+            if not new_research.get('errors'):
+                failure.append({'source':'pattern_discovery','error':'패턴 연구 결과가 완전하지 않습니다.'})
     except Exception as exc:
         novel_summary={'status':'failed','errors':[str(exc)[:180]]}
         failure.append({'source':'pattern_discovery','error':str(exc)[:180]})
@@ -221,6 +227,8 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     print(json.dumps(payload,ensure_ascii=False,default=str))
     if not reports:
         raise RuntimeError('전이학습 실험을 실행하지 못했습니다. 데이터 연결을 확인하세요.')
+    if novel_summary.get('status')=='failed':
+        raise RuntimeError('패턴 연구 엔진이 실패했습니다. reports/crypto_transfer_latest.json의 errors와 GitHub 실행 로그를 확인하세요.')
     return payload
 
 

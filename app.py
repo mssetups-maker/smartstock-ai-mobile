@@ -43,7 +43,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 10.5 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.6 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -321,7 +321,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.5</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.6</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -519,7 +519,12 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
         novel_report_path=Path(__file__).parent/'reports'/'novel_patterns_latest.json'
         if novel_report_path.exists():
             novel_report=json.loads(novel_report_path.read_text(encoding='utf-8'))
-            novel_matches=latest_match(raw,novel_report,market='stocks',horizon=(5 if horizon_days<=5 else 21))
+            # Do not present old discovery prototypes as current matches.
+            observed_at=pd.to_datetime(novel_report.get('timestamp_utc'),utc=True,errors='coerce')
+            research_is_fresh=(pd.notna(observed_at) and
+                               pd.Timedelta(0)<=pd.Timestamp.now(tz='UTC')-observed_at<=pd.Timedelta(hours=48))
+            if novel_report.get('status')=='ok' and research_is_fresh:
+                novel_matches=latest_match(raw,novel_report,market='stocks',horizon=(5 if horizon_days<=5 else 21))
     except (OSError,ValueError,KeyError,TypeError):
         novel_report=None
     health=data_audit(raw)
@@ -781,7 +786,11 @@ if active_section=='chart':
             st.info('발견 연구 결과가 없습니다. GitHub Actions에서 daily 작업을 한 번 실행한 뒤 reports/novel_patterns_latest.json 저장 여부를 확인하세요.')
         else:
             stamp=str(novel_report.get('timestamp_utc','?'))
-            st.caption(f'마지막 연구: {stamp} · 시간순 학습/평가, 중복 표본 제거, 다중검정 보정')
+            if novel_report.get('status')!='ok':
+                st.warning('최근 새 패턴 연구 작업에 오류가 있거나 일부 시장 분석이 누락되었습니다. 보고서·Actions 로그를 확인하세요.')
+            elif not research_is_fresh:
+                st.warning('새 패턴 연구 기록이 48시간 이상 오래되어 현재 패턴 일치 판정을 중단했습니다. GitHub Actions daily 작업을 확인하세요.')
+            st.caption(f'마지막 연구: {stamp} · 전체 종목 공통 날짜 분할·중복 표본 제거·다중검정 보정')
             stock_report=(novel_report.get('markets') or {}).get('stocks') or {}
             stats=stock_report.get('experiments') or []
             a,b=st.columns(2)
@@ -1287,4 +1296,4 @@ if active_section=='quick':
     st.caption('프로그램 화면은 새로고침 시 분석하고, GitHub 예약 실행에서는 조건 변경 시 Telegram 메시지를 발송할 수 있습니다. 자동 알림 사용에는 개인 Bot Token과 Chat ID를 GitHub Secrets에 별도 등록해야 합니다.')
     st.info('자동 알림은 앱이 아닌 GitHub Actions의 정기 실행에 의존하므로 실시간 알림이 아니며, 설정하지 않으면 완전히 꺼져 있습니다.')
 
-st.caption('SmartStock AI FREE 10.4 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
+st.caption('SmartStock AI FREE 10.6 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
