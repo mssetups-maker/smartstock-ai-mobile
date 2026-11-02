@@ -24,6 +24,7 @@ from intelligence import fundamentals_snapshot, news_headline_score, build_llm_c
 from research import adaptive_signals, wave_candidates, free_explanation
 from elliott_waves import estimate_wave, attach_wave_traces
 from chart_patterns import detect_patterns, attach_pattern_traces, pattern_description
+from pattern_discovery import latest_match
 from local_ai import explain_with_ollama
 from explain_chat import answer_question, call_gemini, buy_conditions_answer, conditions
 from journal import update_journal
@@ -42,7 +43,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 10.4 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.5 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -320,7 +321,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.4</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.5</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -328,7 +329,8 @@ with st.expander('🤖 자동 학습·코인 연구 상태 (읽기 전용)', exp
     for report_path, title in [
        (Path(__file__).parent/'data'/'monitor_latest.json','예약 시장 감시'),
        (Path(__file__).parent/'reports'/'crypto_transfer_latest.json','코인→주식 전이학습 실험'),
-       (Path(__file__).parent/'reports'/'crypto_intraday_latest.json','코인 5분봉 학습·1시간 후 검증')]:
+       (Path(__file__).parent/'reports'/'crypto_intraday_latest.json','코인 5분봉 학습·1시간 후 검증'),
+       (Path(__file__).parent/'reports'/'novel_patterns_latest.json','AI 미분류 캔들패턴 발견 연구')]:
         st.markdown(f'**{title}**')
         if report_path.exists():
             try:
@@ -338,6 +340,9 @@ with st.expander('🤖 자동 학습·코인 연구 상태 (읽기 전용)', exp
                 if 'results' in state:
                     for r in state['results'][:6]:
                         st.write(f"{r.get('symbol','?')}: {r.get('status','미검증')} · {r.get('reason','')}")
+                if 'markets' in state:
+                    for market,info in state['markets'].items():
+                        st.caption(f"{market}: 조사 {len(info.get('experiments',[]))}개 · 검증 통과 연구 후보 {info.get('validated_research_candidates',0)}개 (매매 신호 아님)")
                 if 'crypto_5min_evaluations' in state:
                     for coin,info in state['crypto_5min_evaluations'].items():
                         st.caption(f"{coin}: 기록 {info.get('observations',0)}개 · {info.get('status','확인 필요')} · 독립검증 {info.get('independent_test_cases',0)}건")
@@ -368,6 +373,22 @@ with st.expander('🪙 비트코인·이더리움·솔라나 차트', expanded=F
         fig.update_layout(height=320,margin=dict(l=3,r=3,t=10,b=15),
             xaxis_rangeslider_visible=False,template='plotly_dark',xaxis_title='UTC',yaxis_title='KRW')
         st.plotly_chart(fig,use_container_width=True)
+        try:
+            rpt_path=Path(__file__).parent/'reports'/'novel_patterns_latest.json'
+            if rpt_path.exists():
+                import json
+                rpt=json.loads(rpt_path.read_text(encoding='utf-8'))
+                market_type='crypto_5min' if crypto_interval=='5분봉' else 'crypto_daily'
+                matched=latest_match(d,rpt,market=market_type,horizon=12 if market_type=='crypto_5min' else 5)
+                with st.expander('🧬 AI가 찾은 이름 없는 코인 캔들패턴',expanded=False):
+                    if matched:
+                        for motif in matched:
+                            st.markdown(f"**{motif['name']}** · {motif['status']}")
+                            st.caption(f"검증: {motif['holdout_cases']}건 · 방향 후보 {motif['direction']} · 매수/매도 신호 아님")
+                    else:st.info('이번 코인 차트의 끝 부분과 일치하는 검증 가능한 군집 후보가 없습니다.')
+            else:st.caption('신규 패턴 발견은 GitHub Actions daily 첫 실행 후 표시됩니다.')
+        except (ValueError,KeyError,TypeError,OSError) as nov_err:
+            st.caption(f'코인 새 패턴 연구 기록 확인 불가: {str(nov_err)[:100]}')
         st.caption(f'확정된 최근 캔들: {d.index[-1]} UTC · 지연된 무료 데이터일 수 있습니다.')
 
 if 'symbol' not in st.session_state:
@@ -491,6 +512,16 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
     waves=wave_candidates(df)
     numbered_waves = estimate_wave(df, order=5)
     patterns_daily = detect_patterns(raw, pivot_span=3)
+    novel_matches=[]
+    novel_report=None
+    try:
+        import json
+        novel_report_path=Path(__file__).parent/'reports'/'novel_patterns_latest.json'
+        if novel_report_path.exists():
+            novel_report=json.loads(novel_report_path.read_text(encoding='utf-8'))
+            novel_matches=latest_match(raw,novel_report,market='stocks',horizon=(5 if horizon_days<=5 else 21))
+    except (OSError,ValueError,KeyError,TypeError):
+        novel_report=None
     health=data_audit(raw)
     risk=risk_report(raw,res.levels)
     if health.status=='차단' or is_demo or uploaded is not None:
@@ -548,6 +579,7 @@ _explain_snapshot = {
     'levels':{k:float(v) for k,v in res.levels.items() if isinstance(v,(int,float)) and math.isfinite(float(v))},
     'options':_option_snapshot,
     'elliott':numbered_waves, 'patterns':patterns_daily, 'pattern_interval':'일봉',
+    'novel_patterns':novel_matches,
 }
 with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 용어 / 차트 설명', expanded=False):
     st.caption('무료 기본 해설은 현재 분석값과 금융 용어를 연결하는 규칙형 답변입니다. 모든 질문을 이해하는 생성형 AI는 아닙니다.')
@@ -684,6 +716,7 @@ if active_section=='chart':
         show_bb=bb.checkbox('볼린저',value=False,key='chart_bollinger')
         show_waves=aa.checkbox('엘리엇 파동 번호·기준점',value=True,key='chart_elliott')
         show_patterns=bb.checkbox('차트패턴 기준선·목표가',value=True,key='chart_patterns')
+        show_novel=aa.checkbox('AI가 발견한 새 캔들 군집',value=True,key='chart_novel_patterns')
         wave_sensitivity=bb.selectbox('파동 민감도 (봉 수)',[3,5,8,12],index=1,key='chart_wave_sensitivity',
           help='3=세밀한 파동, 12=큰 파동. 최근 N봉은 확정 저점·고점으로 인정하지 않습니다.')
     display_interval=chart_interval
@@ -707,6 +740,13 @@ if active_section=='chart':
         if show_patterns and patterns_for_display:
             figure=attach_pattern_traces(figure,patterns_for_display,shown,
                 cutoff=shown.index[max(0,len(shown)-chart_days)])
+        if show_novel and display_interval=='일봉' and novel_matches:
+            # Shade only the latest window to avoid pretending a discovered
+            # motif has known historic boundaries on untrained timeframes.
+            top=novel_matches[0]
+            if len(shown)>=top['window']:
+                figure.add_vrect(x0=shown.index[-top['window']],x1=shown.index[-1],
+                                 fillcolor='rgba(186,126,255,0.13)',line_width=0,row=1,col=1)
         figure.update_layout(height=700 if show_stoch else 470,
             margin=dict(l=0,r=5,t=32,b=6),showlegend=False,dragmode='pan',
             font=dict(size=10),hovermode='x')
@@ -735,6 +775,27 @@ if active_section=='chart':
                 st.caption(pattern_description(pattern_item))
                 if len(patterns_for_display)>1:st.divider()
         st.caption('서드파티 Trading Central 등의 고유 알고리즘이나 목표가와 동일하지 않습니다. 돌파선 재진입, 거래량, 장 마감 여부를 확인해야 하며 이 패턴은 단독 매수·매도 신호가 아닙니다.')
+    with st.expander('🧬 AI가 스스로 발견한 이름 없는 캔들패턴 · 검증',expanded=True):
+        st.caption('고정 이름(헤드앤숄더 등)으로 규칙화하지 않은 OHLCV 군집입니다. 군집은 데이터에서 생성하며 새 패턴이나 우위를 증명하는 것은 아닙니다.')
+        if novel_report is None:
+            st.info('발견 연구 결과가 없습니다. GitHub Actions에서 daily 작업을 한 번 실행한 뒤 reports/novel_patterns_latest.json 저장 여부를 확인하세요.')
+        else:
+            stamp=str(novel_report.get('timestamp_utc','?'))
+            st.caption(f'마지막 연구: {stamp} · 시간순 학습/평가, 중복 표본 제거, 다중검정 보정')
+            stock_report=(novel_report.get('markets') or {}).get('stocks') or {}
+            stats=stock_report.get('experiments') or []
+            a,b=st.columns(2)
+            a.metric('발견·분석된 군집',f'{len(stats)}개')
+            b.metric('독립검증 통과 연구 후보',f"{stock_report.get('validated_research_candidates',0)}개")
+            if novel_matches:
+                for m in novel_matches:
+                    st.markdown(f"**{m['name']}**")
+                    st.caption(f"방향 연구 후보: {m['direction']} · 평가 {m['holdout_cases']}건 / 학습 {m['train_cases']}건 · 결과: {m['status']}")
+                    if m['holdout_hit_rate'] is not None:
+                        st.caption(f"과거 검증 방향 일치 {m['holdout_hit_rate']:.1%} · 학습 기간 기준선 {m['baseline_hit_rate_train']:.1%} · 보정 q={m['q_value']} (실제 미래 상승확률 아님)")
+            else:
+                st.info('현재 캔들 끝 부분과 비슷한 군집이 없거나, 거리·자료 기준을 충족하지 못했습니다.')
+            st.caption('연구 후보는 거래 신호에 자동 반영하지 않습니다. 종목·시기·시장 상황이 바뀌면 재검증해야 합니다.')
     st.info('아래 목표가·손절가와 AI 상승점수는 **일봉 기반**입니다. 분봉·시간봉으로 바꿔도 분봉용 AI 예측으로 전환되지 않습니다.')
     st.caption('손절·목표가는 최근 확정 스윙 저점/고점·ATR·손익비를 사용한 **롱 포지션 가정의 예시 가격**입니다. 이미 보유한 포지션의 실제 손절 주문은 아니며, 시장 상황에 따라 갱신됩니다. 스윙 추세선은 확정 지점으로만 표시합니다.')
     with st.expander('주요 보조지표 한눈에 보기'):

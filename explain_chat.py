@@ -113,6 +113,17 @@ def glossary(topic: str, c: dict[str, Any]) -> str:
                 f'**확인된 기준점:** {points}. **시나리오 재검토 기준:** {danger}. '
                 '이 번호는 현재 화면의 기본 일봉·민감도 5 기준입니다. 진행 중 파동 끝은 확정되지 않았고 '
                 '시간봉 또는 민감도를 바꾸면 다른 후보가 나올 수 있습니다. 매수 신호가 아닙니다.')
+    if topic == 'novel_pattern':
+        items=c.get('novel_patterns') or []
+        if not items:
+            return ('**AI가 발견한 미분류 캔들군집의 현재 일치 결과가 없습니다.** 이름 없는 패턴 후보를 만드는 연구는 '
+                    'GitHub Actions의 daily 작업이 실행되고, 현재 가격과 비교 가능한 군집이 있을 때 표시됩니다. '
+                    '검증되지 않은 무작위 패턴을 매매 근거로 사용하지 않습니다.')
+        lines=['**현재 가격 움직임과 닮은 AI 자율 군집 후보** (미분류·연구용):']
+        for x in items[:3]:
+            lines.append(f"- {x['name']} · 검증 {x['holdout_cases']}건 · 분류 {x['status']}. "
+                         f"방향 가설 {x['direction']}; 이는 미래 예측확률이 아닙니다.")
+        return '\n'.join(lines)+'\n\n과거에 없던 세상 최초의 패턴이라는 뜻은 아니며, 독립 검증을 통과하더라도 실전 신호로 자동 채택하지 않습니다.'
     if topic == 'pattern':
         from chart_patterns import pattern_description
         patterns=c.get('patterns') or []
@@ -206,6 +217,8 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         return glossary('option', snapshot)
     if any(x in q for x in ('매수조건','매수 조건','매수신호','매수 신호','언제 매수','왜 매수 안','매수 나올','매수할 때','매수 판단 조건')):
         return buy_conditions_answer(snapshot)
+    if any(x in q for x in ('새로운 패턴','새 패턴','자율 패턴','미분류 패턴','ai 발견 패턴','군집','스스로 발견')):
+        return glossary('novel_pattern',snapshot)
     if any(x in q for x in ('차트패턴','차트 패턴','상방 돌파','하방 돌파','상향 돌파','패턴 분석','이중바닥','이중천장','헤드앤숄더','삼각형 패턴','박스권','넥라인','브레이크아웃','breakout')) or (('패턴' in q or '돌파' in q) and '옵션' not in q):
         return glossary('pattern',snapshot)
     if any(x in q for x in ('엘리엇','파동','몇 파','몇파','기준점','0파')):
@@ -228,6 +241,7 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         ('stoch',('스토캐','stoch','%k','%d')),
         ('wave',('엘리엇','파동')),
         ('pattern',('패턴','돌파','넥라인')),
+        ('novel_pattern',('군집',)),
     ]
     for topic, keys in topic_words:
         if any(word in q for word in keys):
@@ -266,7 +280,7 @@ def call_gemini(question: str, snapshot: dict[str, Any], api_key: str,
     safe_data = {k: v for k, v in snapshot.items() if k in {
         'symbol','date','price','score','horizon','recommendation','evaluations',
         'long_signals','long_hit_rate','ma20','ma60','rsi','macd_hist',
-        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott','patterns','pattern_interval'}}
+        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott','patterns','pattern_interval','novel_patterns'}}
     payload = {
         'systemInstruction':{'parts':[{'text':(
             '너는 투자정보 설명 도우미다. 한국어로 초보자도 이해할 수 있게 답하라. '
