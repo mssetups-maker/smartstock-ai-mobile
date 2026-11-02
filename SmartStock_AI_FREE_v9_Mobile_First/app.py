@@ -22,6 +22,7 @@ from engine import HORIZON, FEATURE_LABELS, analyze, clean_prices, indicators, r
 from options_engine import analyze_options, pick_expiry
 from intelligence import fundamentals_snapshot, news_headline_score, build_llm_context
 from research import adaptive_signals, wave_candidates, free_explanation
+from elliott_waves import estimate_wave, attach_wave_traces
 from local_ai import explain_with_ollama
 from explain_chat import answer_question, call_gemini, buy_conditions_answer, conditions
 from journal import update_journal
@@ -318,7 +319,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.2</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.3</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -487,6 +488,7 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
     res.explanation=strict.explanation
     adapted=adaptive_signals(df,horizon_days=horizon_days)
     waves=wave_candidates(df)
+    numbered_waves = estimate_wave(df, order=5)
     health=data_audit(raw)
     risk=risk_report(raw,res.levels)
     if health.status=='차단' or is_demo or uploaded is not None:
@@ -543,6 +545,7 @@ _explain_snapshot = {
     'stoch_d5':float(_last_ind['STO_D5']) if pd.notna(_last_ind['STO_D5']) else None,
     'levels':{k:float(v) for k,v in res.levels.items() if isinstance(v,(int,float)) and math.isfinite(float(v))},
     'options':_option_snapshot,
+    'elliott':numbered_waves,
 }
 with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 용어 / 차트 설명', expanded=False):
     st.caption('무료 기본 해설은 현재 분석값과 금융 용어를 연결하는 규칙형 답변입니다. 모든 질문을 이해하는 생성형 AI는 아닙니다.')
@@ -677,6 +680,9 @@ if active_section=='chart':
         show_volume=bb.checkbox('거래량',value=True,key='chart_vol')
         show_cloud=aa.checkbox('일목 구름',value=True,key='chart_cloud')
         show_bb=bb.checkbox('볼린저',value=False,key='chart_bollinger')
+        show_waves=aa.checkbox('엘리엇 파동 번호·기준점',value=True,key='chart_elliott')
+        wave_sensitivity=bb.selectbox('파동 민감도 (봉 수)',[3,5,8,12],index=1,key='chart_wave_sensitivity',
+          help='3=세밀한 파동, 12=큰 파동. 최근 N봉은 확정 저점·고점으로 인정하지 않습니다.')
     display_interval=chart_interval
     if (is_demo or uploaded is not None) and display_interval!='일봉':
         st.warning('가상/업로드 CSV는 일봉만 포함합니다. 다른 주기의 가격을 만들어내지 않고 일봉을 표시합니다.')
@@ -690,6 +696,9 @@ if active_section=='chart':
                       trendlines=show_trend,volume=show_volume,limit=chart_days,
                       ichimoku=show_cloud,bollinger=show_bb,
                       daily_trade_levels=res.levels if display_interval=='일봉' else None)
+        wave_display=estimate_wave(shown,order=wave_sensitivity) if show_waves else None
+        if wave_display and wave_display.get('nodes'):
+            figure=attach_wave_traces(figure,wave_display,cutoff=shown.index[max(0,len(shown)-chart_days)],latest=(shown.index[-1],shown.Close.iloc[-1]))
         figure.update_layout(height=700 if show_stoch else 470,
             margin=dict(l=0,r=5,t=32,b=6),showlegend=False,dragmode='pan',
             font=dict(size=10),hovermode='x')
@@ -703,10 +712,25 @@ if active_section=='chart':
     st.caption('손절·목표가는 최근 확정 스윙 저점/고점·ATR·손익비를 사용한 **롱 포지션 가정의 예시 가격**입니다. 이미 보유한 포지션의 실제 손절 주문은 아니며, 시장 상황에 따라 갱신됩니다. 스윙 추세선은 확정 지점으로만 표시합니다.')
     with st.expander('주요 보조지표 한눈에 보기'):
         st.dataframe(pd.DataFrame(rule_summary(df),columns=['지표','상태']),hide_index=True,use_container_width=True)
-    with st.expander('엘리엇 파동 후보 · 확정 스윙 · 피보나치 참고 수준'):
-        st.info(f'현재 스윙 구조: **{waves["label"]}**')
-        st.caption(waves['notes'])
-        if waves['points']:st.dataframe(pd.DataFrame(waves['points']),hide_index=True,use_container_width=True)
+    with st.expander('🌊 엘리엇 파동: 현재 몇 파? 시작점·고점·저점·무효화',expanded=True):
+        displayed_wave = wave_display if show_waves and 'wave_display' in locals() else numbered_waves
+        st.markdown(f'**자동 판정: {displayed_wave["current"]}**')
+        if displayed_wave['status']=='판정 보류':
+            st.warning('현재 파동 번호를 신뢰할 만한 단일 충격파로 판정할 수 없습니다. 임의로 3파/5파를 만들지 않습니다.')
+        else:
+            st.caption(f'방향: {displayed_wave["phase"]} · 마지막 확정 기준점: {displayed_wave["confirmed_through"]}')
+            st.dataframe(pd.DataFrame(displayed_wave['anchors']),hide_index=True,use_container_width=True)
+            st.markdown('**0·1·2·3·4·5·A·B·C 기준점 (각 파동의 날짜와 가격)**')
+            st.dataframe(pd.DataFrame([{'파동':n['파동'],'날짜':n['날짜'],'가격':n['가격'],'구분':n['종류']}
+                           for n in displayed_wave['nodes']]),hide_index=True,use_container_width=True)
+            inv=displayed_wave['invalidation']
+            if inv['price'] is not None:
+                st.warning(f'시나리오 재검토 기준: {price_str(inv["price"],symbol)} — {inv["description"]}')
+            else:
+                st.caption(inv['description'])
+        st.caption(displayed_wave['notes'])
+        st.caption('번호는 **선택한 차트 봉 주기**의 확정 스윙에 따라 산정됩니다. 봉 주기를 바꾸면 파동 번호도 바뀔 수 있습니다. 진행 중인 마지막 파동은 추정이며 이후 새 봉이 들어오면 다시 그려질 수 있습니다.')
+        st.markdown('**별도 참고: 최근 120개 일봉의 피보나치 되돌림**')
         if waves['fib']:st.dataframe(pd.DataFrame([{'되돌림 비율':k,'참고 가격':v} for k,v in waves['fib'].items()]),hide_index=True,use_container_width=True)
 
 if active_section=='forecast':

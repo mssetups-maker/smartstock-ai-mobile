@@ -99,9 +99,20 @@ def glossary(topic: str, c: dict[str, Any]) -> str:
                 '20 이하는 과매도권, 80 이상은 과매수권으로 참고하지만 단독 매수 신호가 아닙니다. '
                 '앱의 단기/중기/장기는 계산 기간이 달라 서로 다른 속도로 움직입니다.')
     if topic == 'wave':
-        return ('**엘리엇 파동**은 가격 움직임을 추세 파동과 조정 파동으로 구분하는 해석 방법입니다. '
-                '파동 번호와 시작·끝은 관찰자에 따라 달라질 수 있으므로, 앱에서는 확정 파동이 아닌 *후보*로 표시합니다. '
-                '가격 패턴만으로 목표 시점이나 미래 가격을 확정할 수 없습니다.')
+        wave=c.get('elliott') or {}
+        anchors=wave.get('nodes') or []
+        if not anchors:
+            return ('**엘리엇 파동: 현재 파동 번호 미확정.** 최근의 확정 스윙에서 2파 되돌림·3파 연장·4파 비중첩 규칙을 '
+                    '함께 충족하는 구간을 찾지 못했습니다. 차트 메뉴에서 봉 주기와 민감도를 조절해 보세요. '
+                    '분석이 안 된다는 이유로 임의의 파동 번호를 만들어 표시하지 않습니다.')
+        points=' → '.join(f'{v["파동"]}({v["날짜"]}, {v["가격"]:,.2f})' for v in anchors)
+        inv=wave.get('invalidation') or {}
+        danger=(f'{inv["price"]:,.2f}: {inv.get("description", "")}' if inv.get('price') is not None
+                else inv.get('description','단일 무효화 기준 없음'))
+        return (f'**현재 파동 해석: {wave.get("current","미확정")}** · {wave.get("phase", "방향 미확정")} 후보입니다. '
+                f'**확인된 기준점:** {points}. **시나리오 재검토 기준:** {danger}. '
+                '이 번호는 현재 화면의 기본 일봉·민감도 5 기준입니다. 진행 중 파동 끝은 확정되지 않았고 '
+                '시간봉 또는 민감도를 바꾸면 다른 후보가 나올 수 있습니다. 매수 신호가 아닙니다.')
     return '현재 설명할 수 있는 항목을 찾지 못했습니다.'
 
 
@@ -184,6 +195,8 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         return glossary('option', snapshot)
     if any(x in q for x in ('매수조건','매수 조건','매수신호','매수 신호','언제 매수','왜 매수 안','매수 나올','매수할 때','매수 판단 조건')):
         return buy_conditions_answer(snapshot)
+    if any(x in q for x in ('엘리엇','파동','몇 파','몇파','기준점','0파')):
+        return glossary('wave', snapshot)
     if any(x in q for x in ('왜 ', '왜?', '결론','판단 보류','왜보류','분석 근거','분석 이유','어떻게 판단')):
         return why_answer(snapshot)
     if any(x in q for x in ('실제 상승 확률','상승 확률','상승확률','71.8','ai 점수','상승 점수','상승점수')):
@@ -239,7 +252,7 @@ def call_gemini(question: str, snapshot: dict[str, Any], api_key: str,
     safe_data = {k: v for k, v in snapshot.items() if k in {
         'symbol','date','price','score','horizon','recommendation','evaluations',
         'long_signals','long_hit_rate','ma20','ma60','rsi','macd_hist',
-        'stoch_k5','stoch_d5','levels','options','diagnostics','quality'}}
+        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott'}}
     payload = {
         'systemInstruction':{'parts':[{'text':(
             '너는 투자정보 설명 도우미다. 한국어로 초보자도 이해할 수 있게 답하라. '
