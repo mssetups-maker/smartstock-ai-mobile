@@ -188,6 +188,11 @@ def why_answer(c: dict[str, Any]) -> str:
         intro += '\n\n과거 성적, 최신 추세 또는 데이터 품질 조건이 충분하지 않을 수 있습니다. 현재 화면에 세부 사유가 기록되지 않았습니다.'
     else:
         intro += '\n\n현재 표시된 참고 신호도 실전 수익을 보장하지 않습니다.'
+    stage = c.get('trade_stage')
+    if stage:
+        intro += ('\n\n**10.7 전략별 기회 탐색:** '+str(stage)+' · '+str(c.get('trade_strategy','확정 전략 없음')))
+        if c.get('trade_reasons'):
+            intro += '\n'+'\n'.join('- '+str(v) for v in c['trade_reasons'][:4])
     return intro + '\n\n**왜 점수가 높아도 보류하나요?** 모델 점수는 하나의 입력일 뿐이고, 과거 매수 성적·표본·일관성 검증을 별도로 통과해야 하기 때문입니다.'
 
 
@@ -213,6 +218,15 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
             return '어느 숫자인지 화면을 직접 읽어 식별할 수는 없습니다. 위의 **질문 대상**에서 PCR, OI, IV, 목표가 등 해당 항목을 고른 뒤 다시 질문해 주세요.'
         q = focus.casefold()
     # precedence matters: a question about options buy/sell rights is not a stock-buy question.
+    if any(x in q for x in ('전략','눌림목','시험 매수','모의매매','돌파 매수','매매 기회','적극 매수','균형형')):
+        strategy=snapshot.get('trade_strategy') or '해당하는 전략 없음'
+        stage=snapshot.get('trade_stage') or '미확인'
+        reasons=snapshot.get('trade_reasons') or []
+        blocks=snapshot.get('trade_blocks') or []
+        return ('**현재 매매 기회 탐색:** '+str(stage)+' · '+str(strategy)+' · 분석 성향 '+str(snapshot.get('trade_profile','미확인'))+'\n\n'
+                +'**근거:**\n'+'\n'.join('- '+str(v) for v in reasons[:7])
+                +('\n\n**데이터·위험 주의:** '+', '.join(str(x) for x in blocks) if blocks else '')
+                +'\n\n이는 원점수 기반의 규칙형 탐색이며, 시험 매수는 **모의매매 후보**입니다. 실제 매수·수익률을 보장하지 않습니다.')
     if any(x in q for x in ('옵션이', '옵션 뜻', '옵션이란','옵션은','옵션 기본','콜옵션','풋옵션')) or q in ('옵션','options'):
         return glossary('option', snapshot)
     if any(x in q for x in ('매수조건','매수 조건','매수신호','매수 신호','언제 매수','왜 매수 안','매수 나올','매수할 때','매수 판단 조건')):

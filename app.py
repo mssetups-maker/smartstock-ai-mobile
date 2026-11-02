@@ -30,6 +30,7 @@ from explain_chat import answer_question, call_gemini, buy_conditions_answer, co
 from journal import update_journal
 from strict_validation import audit_history
 from risk_engine import data_audit, risk_report, hypothetical_size, historical_stress, compare_market
+from market_decision import evaluate_market, example_position, PROFILES
 from point_in_time import read_snapshots,join_observations
 from context_model import assess_context
 from sec_history import get_companyfacts,extract_filing_series,financial_features_asof
@@ -43,7 +44,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 10.6 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.7 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -321,7 +322,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.6</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">10.7</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -535,6 +536,14 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
     res.recommendation=strict.recommendation
     res.explanation=strict.explanation
 
+# Three distinct entry strategies are evaluated without changing the strict ML gate.
+trade_profile=st.selectbox('🎯 매매 분석 성향',list(PROFILES),index=1,
+    help='기본: 균형형. 매수 후보는 사전 지정한 규칙과 과거 실험으로 설명하고, 검증 부족 시 모의매매 전용으로 표시합니다.',
+    key='trade_profile_107')
+trade_plan=evaluate_market(raw,horizon=horizon_days,score=res.probability,
+    strict_recommendation=strict.recommendation,quality=health.status,
+    symbol=symbol,profile=trade_profile,hypothetical=(is_demo or uploaded is not None))
+
 spot=float(raw['Close'].iloc[-1]); date=raw.index[-1].strftime('%Y-%m-%d')
 price_delta=float(raw['Close'].iloc[-1]/raw['Close'].iloc[-2]-1)*100
 st.markdown(f'### {"🧪 시연용 가상 종목" if is_demo else POPULAR.get(symbol,symbol)} · {symbol}')
@@ -557,6 +566,36 @@ if strict.recommendation=='판단 보류':
 else:
     st.success(f'**검증 기반 참고 신호: {strict.recommendation}** · {horizon_days}거래일')
 st.caption('상승점수는 실제 수익 확률이 아닙니다. 예측의 정확성 및 수익 보장 없음.')
+# A research watchlist is separate from the strict ML prediction recommendation.
+st.markdown('#### 🎯 AI 매매 기회 탐색 · 10.7')
+st.markdown(f'**현재 기회 단계: {trade_plan.stage}** · 전략: {trade_plan.strategy_name}')
+st.caption('여기서 시험 매수는 **실거래 권유가 아닌 모의매매 후보**입니다. AI 방향점수는 실제 상승확률이 아닙니다.')
+if trade_plan.blocks:
+    st.warning('품질·위험 주의: '+' / '.join(trade_plan.blocks))
+with st.expander('📋 왜 이 단계인가? 전략별 검증·진입 조건',expanded=False):
+    for reason in trade_plan.reasons:
+        st.write('• '+reason)
+    st.caption('각 전략 실험은 신호가 확정된 **다음 일봉 시가**에 진입, 손절·목표 또는 선택 기간 종료에 청산한다고 가정합니다. 양쪽에 동시에 닿으면 손절을 먼저 처리합니다. 왕복 0.3% 비용 포함, 시장 충격·실제 주문은 포함되지 않습니다.')
+    for x in trade_plan.stats:
+        tag='과거 기준 통과(연구용)' if x.passed else '검증 미통과'
+        st.markdown(f'**{x.name} — {tag}**')
+        st.caption(f'중복 제거한 신호 {x.occurrences}건 / 기간 앞쪽 {x.training_count}건 / 뒤쪽 {x.holdout_count}건'
+          + (' · 뒤쪽 평균 순수익 '+f'{x.holdout_avg_net:+.1%}' if x.holdout_avg_net is not None else '')+' · '+x.reason)
+if trade_plan.entry is not None:
+    ea,sl,tp=st.columns(3,gap='small')
+    ea.metric('진입 참고',price_str(trade_plan.entry,symbol))
+    sl.metric('손절 참고',price_str(trade_plan.stop,symbol))
+    tp.metric('1차 목표',price_str(trade_plan.target1,symbol))
+    st.caption(f'계획 손익비 {trade_plan.reward_risk:.1f}:1 · 2차 목표 {price_str(trade_plan.target2,symbol)} · 거래별 위험 예산 자산의 {trade_plan.risk_pct:.2f}% (갭하락 시 초과 가능)')
+    with st.expander('💵 가상 포지션 규모 계산 · 자동 주문 아님',expanded=False):
+        paper_capital=st.number_input('가상 투자금(주가 표시 통화와 동일)',100.,10000000.,10000.,1000.,key='trade_capital_107')
+        cost=st.number_input('왕복 거래비용(%)',0.,5.,.3,.1,key='trade_cost_107')
+        size=example_position(trade_plan,paper_capital,cost)
+        st.metric('계획 위험 예산 이내 주식 수',f'{size["shares"]:,}주')
+        st.caption(f'최대 투자비중 {trade_plan.max_alloc_pct:.0f}% · 손절가에서 체결된다는 보장 없음, 갭/실제 수수료/세금에 따라 손실 확대 가능')
+else:
+    st.caption('현재 확정 매수 전략 조건이 없어 진입·손절·목표를 억지로 생성하지 않습니다.')
+
 
 # Beginner-friendly grounded question assistant, built on the CURRENT displayed
 # ticker and audit. No API key is needed for default explanatory answers.
@@ -581,10 +620,15 @@ _explain_snapshot = {
     'macd_hist':float(_last_ind['MACD_hist']) if pd.notna(_last_ind['MACD_hist']) else None,
     'stoch_k5':float(_last_ind['STO_K5']) if pd.notna(_last_ind['STO_K5']) else None,
     'stoch_d5':float(_last_ind['STO_D5']) if pd.notna(_last_ind['STO_D5']) else None,
-    'levels':{k:float(v) for k,v in res.levels.items() if isinstance(v,(int,float)) and math.isfinite(float(v))},
+    'levels':({
+       'entry':trade_plan.entry,'stop':trade_plan.stop,'tp1':trade_plan.target1,'tp2':trade_plan.target2
+    } if trade_plan.entry is not None else {k:float(v) for k,v in res.levels.items() if isinstance(v,(int,float)) and math.isfinite(float(v))}),
     'options':_option_snapshot,
     'elliott':numbered_waves, 'patterns':patterns_daily, 'pattern_interval':'일봉',
     'novel_patterns':novel_matches,
+    'trade_stage':trade_plan.stage, 'trade_profile':trade_plan.profile,
+    'trade_strategy':trade_plan.strategy_name, 'trade_reasons':trade_plan.reasons,
+    'trade_blocks':trade_plan.blocks,
 }
 with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 용어 / 차트 설명', expanded=False):
     st.caption('무료 기본 해설은 현재 분석값과 금융 용어를 연결하는 규칙형 답변입니다. 모든 질문을 이해하는 생성형 AI는 아닙니다.')
@@ -684,11 +728,14 @@ active_section=mobile_page(section_top,section_detail)
 
 if active_section=='chart':
     st.caption('차트를 손가락으로 밀거나 확대할 수 있습니다. 봉 주기는 화면 위쪽에서 바꿉니다.')
-    st.markdown('#### 자동 목표가 · 손절 참고가격')
-    topa,topb=st.columns(2,gap='small')
-    topa.metric('1차 목표 (TP1)',price_str(res.levels['tp1'],symbol))
-    topb.metric('손절 참고가 (SL)',price_str(res.levels['stop'],symbol))
-    st.caption(f'2차 목표가 {price_str(res.levels["tp2"],symbol)} · 롱 포지션 가정, 자동 주문 아님')
+    st.markdown('#### 10.7 전략별 목표가 · 손절 참고가격')
+    if trade_plan.entry is not None:
+        topa,topb=st.columns(2,gap='small')
+        topa.metric('전략 1차 목표',price_str(trade_plan.target1,symbol))
+        topb.metric('전략 손절 참고가',price_str(trade_plan.stop,symbol))
+        st.caption(f'2차 목표가 {price_str(trade_plan.target2,symbol)} · {trade_plan.strategy_name} · 종가 기준 시나리오 · 매수 신호 검증과 별도')
+    else:
+        st.info('현재 확인된 돌파·눌림목·반등 전략이 없어 매매 전략 목표가와 손절가를 표시하지 않습니다. 기존 순수 ATR/스윙 가격 참고는 위험관리 메뉴에서 확인할 수 있습니다.')
 
 if active_section in ('forecast','model'):
     with st.expander('📋 AI 과거 검증 결과 확인',expanded=False):
@@ -738,6 +785,12 @@ if active_section=='chart':
                       trendlines=show_trend,volume=show_volume,limit=chart_days,
                       ichimoku=show_cloud,bollinger=show_bb,
                       daily_trade_levels=res.levels if display_interval=='일봉' else None)
+        if display_interval=='일봉' and trade_plan.entry is not None:
+            # These are research-only daily price references, not live orders.
+            for val,label,color in ((trade_plan.stop,'10.7 손절 참고','#fb7185'),
+                                    (trade_plan.target1,'10.7 목표 참고','#34d399')):
+                figure.add_hline(y=val,line_dash='dot',line_color=color,line_width=1,
+                                 annotation_text=label,annotation_position='top right',row=1,col=1)
         wave_display=estimate_wave(shown,order=wave_sensitivity) if show_waves else None
         patterns_for_display=detect_patterns(shown,pivot_span=3)
         if wave_display and wave_display.get('nodes'):
@@ -876,7 +929,7 @@ if active_section=='risk':
     left,right=st.columns(2)
     with left:
         portfolio=st.number_input('가상의 총 투자금(주가 표시 통화와 동일)',min_value=100.,value=10000.,step=1000.)
-        risk_pct=st.slider('한 번의 거래에서 감수할 최대 계획 손실',0.1,5.0,1.0,0.1,format='%.1f%%')
+        risk_pct=st.slider('한 번의 거래에서 감수할 최대 계획 손실',0.1,5.0,0.5,0.1,format='%.1f%%')
     with right:
         max_alloc=st.slider('이 종목에 넣을 최대 자산 비중',1,100,20,1,format='%d%%')
         fee_pct=st.number_input('예상 왕복 비용(%)',min_value=0.,max_value=5.,value=.3,step=.1)
@@ -1296,4 +1349,4 @@ if active_section=='quick':
     st.caption('프로그램 화면은 새로고침 시 분석하고, GitHub 예약 실행에서는 조건 변경 시 Telegram 메시지를 발송할 수 있습니다. 자동 알림 사용에는 개인 Bot Token과 Chat ID를 GitHub Secrets에 별도 등록해야 합니다.')
     st.info('자동 알림은 앱이 아닌 GitHub Actions의 정기 실행에 의존하므로 실시간 알림이 아니며, 설정하지 않으면 완전히 꺼져 있습니다.')
 
-st.caption('SmartStock AI FREE 10.6 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
+st.caption('SmartStock AI FREE 10.7 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
