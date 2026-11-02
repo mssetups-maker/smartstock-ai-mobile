@@ -113,6 +113,28 @@ def glossary(topic: str, c: dict[str, Any]) -> str:
                 f'**확인된 기준점:** {points}. **시나리오 재검토 기준:** {danger}. '
                 '이 번호는 현재 화면의 기본 일봉·민감도 5 기준입니다. 진행 중 파동 끝은 확정되지 않았고 '
                 '시간봉 또는 민감도를 바꾸면 다른 후보가 나올 수 있습니다. 매수 신호가 아닙니다.')
+    if topic == 'novel_pattern':
+        items=c.get('novel_patterns') or []
+        if not items:
+            return ('**AI가 발견한 미분류 캔들군집의 현재 일치 결과가 없습니다.** 이름 없는 패턴 후보를 만드는 연구는 '
+                    'GitHub Actions의 daily 작업이 실행되고, 현재 가격과 비교 가능한 군집이 있을 때 표시됩니다. '
+                    '검증되지 않은 무작위 패턴을 매매 근거로 사용하지 않습니다.')
+        lines=['**현재 가격 움직임과 닮은 AI 자율 군집 후보** (미분류·연구용):']
+        for x in items[:3]:
+            lines.append(f"- {x['name']} · 검증 {x['holdout_cases']}건 · 분류 {x['status']}. "
+                         f"방향 가설 {x['direction']}; 이는 미래 예측확률이 아닙니다.")
+        return '\n'.join(lines)+'\n\n과거에 없던 세상 최초의 패턴이라는 뜻은 아니며, 독립 검증을 통과하더라도 실전 신호로 자동 채택하지 않습니다.'
+    if topic == 'pattern':
+        from chart_patterns import pattern_description
+        patterns=c.get('patterns') or []
+        label=c.get('pattern_interval','일봉')
+        if not patterns:
+            return (f'**{label} 차트에서 최근 확정된 가격만으로 신뢰할 만한 자동 차트패턴을 찾지 못했습니다.** '
+                    '차트패턴은 가격 흐름에서 삼각형·박스권·이중바닥·이중천장·헤드앤숄더 등 형태를 후보로 찾는 방식입니다. '
+                    '없는데 억지로 패턴을 만들지 않습니다. 차트 메뉴에서 원하는 봉을 선택하고 차트패턴 분석을 확인하세요.')
+        return ('**현재 종목의 일봉 차트패턴 후보** (다른 시간봉은 차트 탭에서 확인하세요):\n\n'
+                + '\n\n'.join(pattern_description(p) for p in patterns[:3])
+                + '\n\n패턴 목표는 과거 가격 폭에 따른 기계적 측정치일 뿐 미래 목표가나 통계적 상승확률이 아닙니다.')
     return '현재 설명할 수 있는 항목을 찾지 못했습니다.'
 
 
@@ -166,6 +188,11 @@ def why_answer(c: dict[str, Any]) -> str:
         intro += '\n\n과거 성적, 최신 추세 또는 데이터 품질 조건이 충분하지 않을 수 있습니다. 현재 화면에 세부 사유가 기록되지 않았습니다.'
     else:
         intro += '\n\n현재 표시된 참고 신호도 실전 수익을 보장하지 않습니다.'
+    stage = c.get('trade_stage')
+    if stage:
+        intro += ('\n\n**10.7 전략별 기회 탐색:** '+str(stage)+' · '+str(c.get('trade_strategy','확정 전략 없음')))
+        if c.get('trade_reasons'):
+            intro += '\n'+'\n'.join('- '+str(v) for v in c['trade_reasons'][:4])
     return intro + '\n\n**왜 점수가 높아도 보류하나요?** 모델 점수는 하나의 입력일 뿐이고, 과거 매수 성적·표본·일관성 검증을 별도로 통과해야 하기 때문입니다.'
 
 
@@ -190,11 +217,56 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         if focus == '현재 판단':
             return '어느 숫자인지 화면을 직접 읽어 식별할 수는 없습니다. 위의 **질문 대상**에서 PCR, OI, IV, 목표가 등 해당 항목을 고른 뒤 다시 질문해 주세요.'
         q = focus.casefold()
+    # 10.10: a grounded diagnostic for exact rule failures (not generic "insufficient samples").
+    if any(x in q for x in ('왜 신호 0','왜 0건','조건 몇 개','부족한 조건','어떤 조건이 부족','매수 신호 없는 이유','조건별','신호가 안','매매 신호 0')):
+        report=snapshot.get('opportunity_diagnostics') or {}
+        rules=report.get('strategies') or {}
+        if not rules:
+            return '현재 완료 일봉으로 계산된 조건별 진단이 없습니다. 주가 데이터와 장 마감 상태를 확인하세요.'
+        result=[f"**{report.get('symbol','현재 종목')}의 전략별 조건 점검** · 완료 일봉 {report.get('bar_date','?')}"]
+        for record in rules.values():
+            result.append(f"**{record.get('name','전략')}** {record.get('passed',0)}/{record.get('total',0)} 충족")
+            missing=record.get('missing') or []
+            result.extend('- 미충족: '+str(name) for name in missing)
+            if not missing: result.append('- 가격 규칙은 모두 충족했습니다(실제 매수 승인 아님).')
+        result.append('매수 신호 0건과 과거 가격 표본 부족은 다른 문제입니다. 이 표시는 검증되지 않은 규칙형 기회 탐색이며 매수 승인이 아닙니다.')
+        return '\n'.join(result)
     # precedence matters: a question about options buy/sell rights is not a stock-buy question.
+    if any(t in q for t in ('2파 저점','2파저점','c파','z파','wxyxz','w-x-y-x-z','wxy','조정파 저점','바닥 매수','저점 매수','저점이야')) or focus=='2파·C파·Z파 저점':
+        research=snapshot.get('wave_bottoms') or {}
+        bottom_candidates=research.get('candidates') or []
+        if not bottom_candidates:
+            return ('**2파·C파·Z파 저점 관찰 후보를 확인하지 못했습니다.** '
+                    '완성된 가격 자료로 확정된 스윙 기준을 만족하지 않으면 번호를 만들지 않습니다. '
+                    '조정이 끝났다는 뜻도, 저점이 아니라는 뜻도 아닙니다.')
+        lines=['**현재 일봉 저점 탐색(규칙형 연구 후보)**']
+        for b in bottom_candidates:
+            lines.append(f"- **{b['kind']}** · {b['status']} · 예상 구간 {b['zone_low']:,.2f}~{b['zone_high']:,.2f} "
+                         f"· 실제 저가 {b['observed_low']:,.2f} ({b['observed_low_date']})")
+            if b.get('invalidation') is not None:
+                lines.append(f"  - 0파 무효화 {b['invalidation']:,.2f} 이하")
+            if b.get('reevaluate') is not None:
+                lines.append(f"  - 확장 재검토 참고 {b['reevaluate']:,.2f} (절대 무효화 아님)")
+            lines.extend('  - '+x for x in b.get('reasons',[])[:2])
+        lines.append('저점은 발생 당일에 확정할 수 없습니다. 새로운 캔들이 추가되어야 후행 확인되며 파동 명칭은 수정될 수 있습니다. 자동 주문은 하지 않습니다.')
+        return '\n'.join(lines)
+    if any(x in q for x in ('전략','눌림목','시험 매수','모의매매','돌파 매수','매매 기회','적극 매수','균형형')):
+        strategy=snapshot.get('trade_strategy') or '해당하는 전략 없음'
+        stage=snapshot.get('trade_stage') or '미확인'
+        reasons=snapshot.get('trade_reasons') or []
+        blocks=snapshot.get('trade_blocks') or []
+        return ('**현재 매매 기회 탐색:** '+str(stage)+' · '+str(strategy)+' · 분석 성향 '+str(snapshot.get('trade_profile','미확인'))+'\n\n'
+                +'**근거:**\n'+'\n'.join('- '+str(v) for v in reasons[:7])
+                +('\n\n**데이터·위험 주의:** '+', '.join(str(x) for x in blocks) if blocks else '')
+                +'\n\n이는 원점수 기반의 규칙형 탐색이며, 시험 매수는 **모의매매 후보**입니다. 실제 매수·수익률을 보장하지 않습니다.')
     if any(x in q for x in ('옵션이', '옵션 뜻', '옵션이란','옵션은','옵션 기본','콜옵션','풋옵션')) or q in ('옵션','options'):
         return glossary('option', snapshot)
     if any(x in q for x in ('매수조건','매수 조건','매수신호','매수 신호','언제 매수','왜 매수 안','매수 나올','매수할 때','매수 판단 조건')):
         return buy_conditions_answer(snapshot)
+    if any(x in q for x in ('새로운 패턴','새 패턴','자율 패턴','미분류 패턴','ai 발견 패턴','군집','스스로 발견')):
+        return glossary('novel_pattern',snapshot)
+    if any(x in q for x in ('차트패턴','차트 패턴','상방 돌파','하방 돌파','상향 돌파','패턴 분석','이중바닥','이중천장','헤드앤숄더','삼각형 패턴','박스권','넥라인','브레이크아웃','breakout')) or (('패턴' in q or '돌파' in q) and '옵션' not in q):
+        return glossary('pattern',snapshot)
     if any(x in q for x in ('엘리엇','파동','몇 파','몇파','기준점','0파')):
         return glossary('wave', snapshot)
     if any(x in q for x in ('왜 ', '왜?', '결론','판단 보류','왜보류','분석 근거','분석 이유','어떻게 판단')):
@@ -214,6 +286,8 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         ('macd',('macd',)),
         ('stoch',('스토캐','stoch','%k','%d')),
         ('wave',('엘리엇','파동')),
+        ('pattern',('패턴','돌파','넥라인')),
+        ('novel_pattern',('군집',)),
     ]
     for topic, keys in topic_words:
         if any(word in q for word in keys):
@@ -252,7 +326,7 @@ def call_gemini(question: str, snapshot: dict[str, Any], api_key: str,
     safe_data = {k: v for k, v in snapshot.items() if k in {
         'symbol','date','price','score','horizon','recommendation','evaluations',
         'long_signals','long_hit_rate','ma20','ma60','rsi','macd_hist',
-        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott'}}
+        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott','wave_bottoms','patterns','pattern_interval','novel_patterns'}}
     payload = {
         'systemInstruction':{'parts':[{'text':(
             '너는 투자정보 설명 도우미다. 한국어로 초보자도 이해할 수 있게 답하라. '

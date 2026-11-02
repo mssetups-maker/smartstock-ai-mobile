@@ -14,6 +14,8 @@ from journal import update_journal
 from research import adaptive_signals
 from strict_validation import audit_history
 from risk_engine import data_audit
+from stock_data_provider import fetch_stock_daily
+from market_data_guard import daily_market_state
 from alerts import send_alerts_if_enabled
 from point_in_time import read_snapshots
 from context_model import assess_context
@@ -22,8 +24,7 @@ ROOT=Path(__file__).resolve().parent
 
 def run_scan(symbols:list[str],root:Path=ROOT,fetcher=None,horizons:list[int]|None=None):
     if fetcher is None:
-        import yfinance as yf
-        fetcher=lambda x: yf.Ticker(x).history(period='10y',interval='1d',auto_adjust=True,actions=False,timeout=18)
+        fetcher=lambda x: fetch_stock_daily(x)
     horizons=[validate_horizon(int(h)) for h in (horizons if horizons is not None else [21])]
     if len(horizons)>10:raise ValueError('정기 분석 기간은 최대 10개를 지정하세요.')
     root.mkdir(parents=True,exist_ok=True)
@@ -35,7 +36,7 @@ def run_scan(symbols:list[str],root:Path=ROOT,fetcher=None,horizons:list[int]|No
         symbol=symbol.upper().strip()
         if not symbol or symbol.startswith('#'):continue
         try:
-            raw=clean_prices(fetcher(symbol))
+            raw=clean_prices(daily_market_state(fetcher(symbol),symbol)[0])
             if len(raw)<320:raise ValueError(f'자료가 부족합니다: {len(raw)}거래일')
             df=indicators(raw)
             quality=data_audit(raw)

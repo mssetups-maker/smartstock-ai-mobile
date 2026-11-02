@@ -123,7 +123,7 @@ def _snapshot(symbol:str,h:int,frame:pd.DataFrame,now:datetime) -> dict[str,Any]
       'strategy_name':plan.strategy_name,'status':'waiting_entry',
       'signal_close':round(float(plan.entry),7),'stop':round(float(plan.stop),7),
       'target':round(float(plan.target1),7),'cost_pct':COST_PCT,
-      'source':'Yahoo Finance delayed daily OHLCV; rules-only, not model probability',
+      'source':'Best-effort free daily OHLCV (Yahoo or Stooq); adjustment differences possible; rules-only',
       'snapshot_verified':False,
       'reason':'확정 종가에서 발견한 규칙 기반 전략 후보. 다음 완성 봉 시가부터 모의 평가.',
     }

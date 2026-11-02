@@ -9,6 +9,17 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Check *all* deployment files before importing optional analysis modules or
+# collecting any data. A missing 10.10/10.11 file now gives a complete list.
+if __name__ == '__main__':
+    from preflight import check as _check_deployment
+    _startup_check = _check_deployment(Path(__file__).resolve().parent)
+    print('SMARTSTOCK_PREFLIGHT '+json.dumps(_startup_check,ensure_ascii=False),flush=True)
+    if _startup_check['status'] != 'ok':
+        raise SystemExit('사전점검 실패. 누락 파일: '+', '.join(_startup_check['missing'])
+                         +'; 문법 오류: '+'; '.join(_startup_check['syntax_errors']))
+
 import pandas as pd
 from crypto_transfer import COINS, get_candles, transfer_audit
 from crypto_intraday import test_one_hour
@@ -19,6 +30,7 @@ from forecast_forward import update_forecast_audit
 from opportunity_diagnostics import batch_diagnostics, save_diagnostics
 from wave_bottom_audit import update_bottom_audit
 from market_data_guard import daily_market_state
+from stock_data_provider import fetch_stock_daily
 
 ROOT=Path(__file__).resolve().parent
 
@@ -181,8 +193,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         except Exception as exc:
             failure.append({'source':c,'error':str(exc)[:180]})
     if stock_getter is None:
-        import yfinance as yf
-        stock_getter=lambda t: yf.Ticker(t).history(period='10y',interval='1d',auto_adjust=True,timeout=22)
+        stock_getter=lambda t: fetch_stock_daily(t,now=now)
     # Model comparisons remain in their own development + untouched holdout
     # windows. Results are research only; do NOT deploy them to live UI.
     horizons=(5,21,63)
@@ -299,7 +310,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     # Keep 'partial' distinct from 'ok': a green workflow step does not prove
     # every data source, optional research module, or model succeeded.
     health_record={
-       'version':'10.11.1','timestamp_utc':now.isoformat(),
+       'version':'10.11.2','timestamp_utc':now.isoformat(),
        'status':payload['status'],
        'stock_crypto_experiments':len(reports),
        'paper_strategy_status':paper_summary.get('status','not_run'),
@@ -317,7 +328,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     _dump(root/'reports'/'crypto_transfer_latest.json',payload)
     _append_daily_audit(root/'reports'/'crypto_transfer_history.jsonl',payload)
     # Visible status summary separate from the enormous transfer-audit JSON.
-    print('SMARTSTOCK_10_11_1_HEALTH '+json.dumps({
+    print('SMARTSTOCK_10_11_2_HEALTH '+json.dumps({
         'overall':payload['status'],
         'transfer_experiments':len(reports),
         'novel_patterns':novel_summary.get('status'),
@@ -329,7 +340,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         'data_issues':len(failure),
         'models_auto_deployed':False, 'bottom_watch':wave_bottom_summary.get('current_candidates',0)},ensure_ascii=False))
     if failure:
-        print('::warning title=SmartStock 10.11.1 partial analysis::'+
+        print('::warning title=SmartStock 10.11.2 partial analysis::'+
               str(len(failure))+' data/model subsystem errors. Review report JSON; job is not a complete success.')
     # Full research data is in reports/crypto_transfer_latest.json, NOT stdout.
     # Short structured telemetry avoids logs flooding 20,000+ characters.
@@ -364,11 +375,6 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('--mode',choices=['hourly','daily'],required=True)
     mode=p.parse_args().mode
-    from preflight import check
-    check_report=check(ROOT)
-    print('SMARTSTOCK_PREFLIGHT '+json.dumps(check_report,ensure_ascii=False))
-    if check_report['status']!='ok':
-        raise RuntimeError('필수 프로그램 파일 누락/구문 오류. 누락 파일: '+', '.join(check_report['missing'])+'; 구문 오류: '+'; '.join(check_report['syntax_errors']))
     (hourly if mode=='hourly' else daily)()
 
 if __name__=='__main__':main()

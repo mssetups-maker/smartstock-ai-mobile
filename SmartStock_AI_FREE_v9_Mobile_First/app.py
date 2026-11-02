@@ -23,6 +23,7 @@ from options_engine import analyze_options, pick_expiry
 from intelligence import fundamentals_snapshot, news_headline_score, build_llm_context
 from research import adaptive_signals, wave_candidates, free_explanation
 from elliott_waves import estimate_wave, attach_wave_traces
+from wave_bottoms import detect_bottoms, attach_bottom_traces
 from chart_patterns import detect_patterns, attach_pattern_traces, pattern_description
 from pattern_discovery import latest_match
 from local_ai import explain_with_ollama
@@ -32,6 +33,8 @@ from strict_validation import audit_history
 from risk_engine import data_audit, risk_report, hypothetical_size, historical_stress, compare_market
 from market_decision import evaluate_market, example_position, PROFILES
 from market_data_guard import daily_market_state
+from stock_data_provider import fetch_stock_daily
+from opportunity_diagnostics import diagnose_one
 from point_in_time import read_snapshots,join_observations
 from context_model import assess_context
 from sec_history import get_companyfacts,extract_filing_series,financial_features_asof
@@ -45,7 +48,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 10.9 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.11 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -122,8 +125,8 @@ def load_macro():
 
 @st.cache_data(ttl=900, show_spinner=False)
 def load_prices(symbol:str):
-    hist = yf.Ticker(symbol).history(period='10y', interval='1d', auto_adjust=True, actions=False, timeout=15)
-    return clean_prices(hist)
+    hist = fetch_stock_daily(symbol)
+    return clean_prices(daily_market_state(hist, symbol)[0])
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def do_analyze(raw, horizon_days):
@@ -145,7 +148,7 @@ def load_intraday(symbol):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def load_benchmark(symbol):
-    return clean_prices(yf.Ticker(symbol).history(period='10y',interval='1d',auto_adjust=True,actions=False,timeout=15))
+    return clean_prices(daily_market_state(fetch_stock_daily(symbol),symbol)[0])
 
 @st.cache_data(ttl=150, show_spinner=False)
 def load_selected_timeframe(symbol, label):
@@ -157,8 +160,8 @@ def load_earnings_events(symbol):
 
 @st.cache_data(ttl=900,show_spinner=False)
 def load_screener_prices(symbol):
-    return clean_prices(yf.Ticker(symbol).history(period='1y',interval='1d',auto_adjust=True,
-                                                  actions=False,timeout=12))
+    raw = fetch_stock_daily(symbol)
+    return clean_prices(daily_market_state(raw,symbol)[0].tail(260))
 
 @st.cache_data(ttl=900, show_spinner=False)
 def lookup(search):
@@ -500,7 +503,7 @@ try:
     else:
         with st.spinner(f'{symbol} 과거 시세 불러오는 중...'):
             raw=load_prices(symbol)
-        source='Yahoo Finance 일봉 (지연 가능)'
+        source='무료 Yahoo 또는 Stooq 일봉 (지연·차이 가능)'
         raw,last_bar_note=daily_market_state(raw,symbol)
     if len(raw)<90:raise ValueError('분석 가능한 일봉 데이터가 90개 미만입니다. 티커 또는 CSV를 확인하세요.')
 except Exception as ex:
@@ -516,6 +519,10 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
     adapted=adaptive_signals(df,horizon_days=horizon_days)
     waves=wave_candidates(df)
     numbered_waves = estimate_wave(df, order=5)
+    try:
+        wave_bottom_daily = detect_bottoms(raw,order=5)
+    except ValueError:
+        wave_bottom_daily = {'status':'insufficient','candidates':[],'rejected':[],'notes':'저점 분석용 유효한 완료 봉이 부족합니다.'}
     patterns_daily = detect_patterns(raw, pivot_span=3)
     novel_matches=[]
     novel_report=None
@@ -555,7 +562,7 @@ if _health_file.exists():
         import json as _json109
         _diag109=_json109.loads(_health_file.read_text(encoding='utf-8'))
         _diag_status=_diag109.get('status','확인 불가')
-        with st.expander('🩺 10.9 자동연구·학습 상태 진단',expanded=_diag_status!='ok'):
+        with st.expander('🩺 10.11 자동연구·학습 상태 진단',expanded=_diag_status!='ok'):
             st.caption(f'최종 실행: {_diag109.get("timestamp_utc","?")} · 결과: {_diag_status}')
             _diag_stamp=pd.to_datetime(_diag109.get('timestamp_utc'),utc=True,errors='coerce')
             if (pd.isna(_diag_stamp) or pd.Timestamp.now(tz='UTC')-_diag_stamp>pd.Timedelta(hours=48)):
@@ -594,7 +601,7 @@ else:
     st.success(f'**검증 기반 참고 신호: {strict.recommendation}** · {horizon_days}거래일')
 st.caption('상승점수는 실제 수익 확률이 아닙니다. 예측의 정확성 및 수익 보장 없음.')
 # A research watchlist is separate from the strict ML prediction recommendation.
-st.markdown('#### 🎯 AI 매매 기회 탐색 · 10.9')
+st.markdown('#### 🎯 AI 매매 기회 탐색 · 10.10')
 st.markdown(f'**현재 기회 단계: {trade_plan.stage}** · 전략: {trade_plan.strategy_name}')
 st.caption('여기서 시험 매수는 **실거래 권유가 아닌 모의매매 후보**입니다. AI 방향점수는 실제 상승확률이 아닙니다.')
 if trade_plan.blocks:
@@ -622,6 +629,37 @@ if trade_plan.entry is not None:
         st.caption(f'최대 투자비중 {trade_plan.max_alloc_pct:.0f}% · 손절가에서 체결된다는 보장 없음, 갭/실제 수수료/세금에 따라 손실 확대 가능')
 else:
     st.caption('현재 확정 매수 전략 조건이 없어 진입·손절·목표를 억지로 생성하지 않습니다.')
+
+
+
+# 10.10: opportunity funnel is not a signal generator or price target engine.
+# It diagnoses exact production strategy rules using only completed daily bars.
+_opportunity=None
+try:
+    _opportunity=diagnose_one(raw,symbol,now=dt.datetime.now(dt.timezone.utc))
+except (ValueError,KeyError,TypeError) as _opp_exc:
+    _opportunity_error=str(_opp_exc)[:180]
+with st.expander('🔎 10.10 · 왜 매수 기회가 없는지? 조건별 진단',expanded=False):
+    st.caption('완료 일봉만 사용 · 돌파/눌림목/반등 규칙을 직접 검사 · 미래 데이터/주문 미사용')
+    if _opportunity is None:
+        st.warning('분석 보류: '+_opportunity_error)
+    else:
+        opdate=_opportunity['bar_date']
+        st.caption(f"기준 날짜: {opdate} · 분석 일봉 {_opportunity['observed_candles']}개 · 종가 {price_str(_opportunity['close'],symbol)}")
+        if opdate!=str(raw.index[-1].date()):
+            st.warning('화면 최종 일봉과 진단 기준일이 다릅니다. 현재 일봉은 마감 전일 수 있습니다.')
+        if _opportunity['signal_today']:
+            st.info('가격 규칙상 전략 후보가 있습니다. 실제 매수 승인이나 검증된 모델 신호는 아닙니다.')
+        else:
+            st.info('현재 3개 전략 모두 완전 충족하지 않았습니다. 가장 가까운 조건과 미충족 원인을 확인하세요.')
+        for _opp_key,_opp_value in _opportunity['strategies'].items():
+            _opp_tag='조건 충족(검증 전)' if _opp_value['signal_today'] else '1개만 부족' if _opp_value['is_near_miss'] else '미충족'
+            st.markdown(f"**{_opp_value['name']} — {_opp_tag}** ({_opp_value['passed']}/{_opp_value['total']}개)")
+            st.caption('최근 252봉 규칙 조건 발생 '+str(_opp_value['signal_days_in_lookback'])+'일 · 독립 모의매매 건수 아님')
+            for _opp_name,_opp_ok in _opp_value['checks'].items():
+                st.write(('✅ ' if _opp_ok else '❌ ')+_opp_name)
+        st.caption(f"20봉 최고가 {price_str(_opportunity['levels']['prior_20_day_high'],symbol)} · 20일선 {price_str(_opportunity['levels']['ma20'],symbol)} · ATR14 {price_str(_opportunity['levels']['atr14'],symbol)}. 이 수치는 관찰 기준이지 주문가가 아닙니다.")
+        st.warning('매수 신호 개수보다 사후 평가 성과와 순손익이 중요합니다. 조건을 완화하기 전 독립 기간을 검증해야 합니다.')
 
 
 # 10.8 prospective monitor is a completely separate PAPER-ONLY record.
@@ -685,7 +723,8 @@ with st.expander('🧠 10.8 · 그날 AI 상승점수의 실제 예측 성적', 
                 stats=_ml.get('by_horizon',{}).get(h,{})
                 n=stats.get('n',0)
                 if n>=20:
-                    st.write(f"**{h}거래일**: {n}건 · 방향 일치 {stats.get('accuracy_pct')}% · Brier 점수 {stats.get('brier')} (0.5 고정 기준 0.25)")
+                    st.write(f"**{h}거래일**: {n}건 · 방향 일치 {stats.get('accuracy_pct')}% · Brier {stats.get('brier')} (0.5 고정 기준 0.25)")
+                    st.caption('항상 상승 예측 기준 '+str(stats.get('always_up_accuracy_pct','—'))+'% · 겹침 보정 단순 참고 사례수 '+str(stats.get('nonoverlap_proxy','—'))+'건 · 보정된 확률 아님')
                 else:
                     st.caption(f'{h}거래일: 완료 {n}건 · 검증 표본 부족 (권장 최소 20건)')
             ticker=_ml.get('by_symbol',{}).get(symbol,{})
@@ -722,11 +761,12 @@ _explain_snapshot = {
        'entry':trade_plan.entry,'stop':trade_plan.stop,'tp1':trade_plan.target1,'tp2':trade_plan.target2
     } if trade_plan.entry is not None else {}),
     'options':_option_snapshot,
-    'elliott':numbered_waves, 'patterns':patterns_daily, 'pattern_interval':'일봉',
+    'elliott':numbered_waves, 'wave_bottoms':wave_bottom_daily, 'patterns':patterns_daily, 'pattern_interval':'일봉',
     'novel_patterns':novel_matches,
     'trade_stage':trade_plan.stage, 'trade_profile':trade_plan.profile,
     'trade_strategy':trade_plan.strategy_name, 'trade_reasons':trade_plan.reasons,
     'trade_blocks':trade_plan.blocks, 'last_bar_note':last_bar_note,
+    'opportunity_diagnostics':_opportunity,
 }
 with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 용어 / 차트 설명', expanded=False):
     st.caption('무료 기본 해설은 현재 분석값과 금융 용어를 연결하는 규칙형 답변입니다. 모든 질문을 이해하는 생성형 AI는 아닙니다.')
@@ -737,7 +777,7 @@ with st.expander('💬 AI에게 물어보기 · 매수 판단 이유 / 옵션 �
     question_focus=st.selectbox('질문 대상',[
         '현재 판단','매수 조건','옵션 전체','풋/콜 비율 PCR','미결제약정 OI',
         '내재변동성 IV','Max Pain','콜월·풋월','그릭스',
-        '목표가·손절가','RSI','MACD','스토캐스틱','엘리엇 파동','차트패턴·돌파'],
+        '목표가·손절가','RSI','MACD','스토캐스틱','엘리엇 파동','2파·C파·Z파 저점','차트패턴·돌파'],
         help='“저게 뭐야?”처럼 대상을 생략해도 이 선택을 기준으로 답할 수 있습니다.',
         key='explain_question_focus')
     qa1,qa2,qa3=st.columns(3,gap='small')
@@ -865,6 +905,7 @@ if active_section=='chart':
         show_cloud=aa.checkbox('일목 구름',value=True,key='chart_cloud')
         show_bb=bb.checkbox('볼린저',value=False,key='chart_bollinger')
         show_waves=aa.checkbox('엘리엇 파동 번호·기준점',value=True,key='chart_elliott')
+        show_bottoms=bb.checkbox('2·C·Z파 저점 후보 구간',value=True,key='chart_wave_bottoms')
         show_patterns=bb.checkbox('차트패턴 기준선·목표가',value=True,key='chart_patterns')
         show_novel=aa.checkbox('AI가 발견한 새 캔들 군집',value=True,key='chart_novel_patterns')
         wave_sensitivity=bb.selectbox('파동 민감도 (봉 수)',[3,5,8,12],index=1,key='chart_wave_sensitivity',
@@ -890,9 +931,21 @@ if active_section=='chart':
                 figure.add_hline(y=val,line_dash='dot',line_color=color,line_width=1,
                                  annotation_text=label,annotation_position='top right',row=1,col=1)
         wave_display=estimate_wave(shown,order=wave_sensitivity) if show_waves else None
+        try:
+            # Intraday vendors may provide the still-forming final candle.
+            # Drop it for corrective-low analysis rather than using its low
+            # and retrospectively pretending it was a confirmed signal.
+            _low_input=shown.iloc[:-1] if display_interval!='일봉' else shown
+            bottom_display=detect_bottoms(_low_input,order=wave_sensitivity)
+        except ValueError:
+            bottom_display={'status':'insufficient','candidates':[],'rejected':[],
+                            'notes':'입력 데이터 품질 또는 길이 부족으로 저점 탐지를 중단했습니다.'}
         patterns_for_display=detect_patterns(shown,pivot_span=3)
         if wave_display and wave_display.get('nodes'):
             figure=attach_wave_traces(figure,wave_display,cutoff=shown.index[max(0,len(shown)-chart_days)],latest=(shown.index[-1],shown.Close.iloc[-1]))
+        if show_bottoms and bottom_display.get('candidates'):
+            figure=attach_bottom_traces(figure,bottom_display,
+                cutoff=shown.index[max(0,len(shown)-chart_days)])
         if show_patterns and patterns_for_display:
             figure=attach_pattern_traces(figure,patterns_for_display,shown,
                 cutoff=shown.index[max(0,len(shown)-chart_days)])
@@ -932,6 +985,30 @@ if active_section=='chart':
                 st.caption(pattern_description(pattern_item))
                 if len(patterns_for_display)>1:st.divider()
         st.caption('서드파티 Trading Central 등의 고유 알고리즘이나 목표가와 동일하지 않습니다. 돌파선 재진입, 거래량, 장 마감 여부를 확인해야 하며 이 패턴은 단독 매수·매도 신호가 아닙니다.')
+    with st.expander('🎯 2파·C파·Z파 예상 저점 · 초기 반등 · 확인 매수 후보',expanded=True):
+        st.caption(f'대상: {display_interval} · 분봉/시간봉 마지막 미완성 가능 봉 1개 제외 · AI 매수 승인 아님')
+        _wd=bottom_display if 'bottom_display' in locals() else wave_bottom_daily
+        if not _wd.get('candidates'):
+            st.info('현재 조건을 충족한 2파/C파/Z파 저점 후보가 없습니다. 저점을 임의로 만들어 표시하지 않습니다.')
+        for _b in _wd.get('candidates',[]):
+            st.markdown(f"**{_b['kind']} — {_b['status']}**")
+            st.caption('상태는 저점 관찰 단계입니다. 파동 번호 자체의 확정이나 매수 승인을 뜻하지 않습니다.')
+            _bl,_br=st.columns(2)
+            _bl.metric('예상 관찰 구간',f"{price_str(_b['zone_low'],symbol)} ~ {price_str(_b['zone_high'],symbol)}")
+            _br.metric('실제 관측 최저가',price_str(_b['observed_low'],symbol))
+            if _b['invalidation'] is not None:
+                st.caption(f"파동 무효화: {price_str(_b['invalidation'],symbol)} 이하 · 0파 시작점 기준")
+            if _b['reevaluate'] is not None:
+                st.caption(f"확장 시나리오 재검토선: {price_str(_b['reevaluate'],symbol)} (절대 무효화 아님)")
+            st.caption(f"반등 관찰 기준: 이전 봉 고가 {price_str(_b['entry_trigger'],symbol)} 위로 완성 봉 종가 확인. 이는 주문가격이 아닙니다.")
+            st.dataframe(pd.DataFrame(_b['anchors']),hide_index=True,use_container_width=True)
+            for _reason in _b['reasons']:st.caption('• '+_reason)
+            st.divider()
+        if _wd.get('rejected'):
+            with st.expander('무효 또는 재검토 대상 구조'):
+                for _rej in _wd['rejected'][:4]:st.caption(f"{_rej['kind']} · {_rej['status']}: {_rej['reason']}")
+        st.caption(_wd.get('notes',''))
+        st.warning('이 분석은 후행 확정과 예상 구간을 구분합니다. 검증된 매수 승률·성공확률이 없고 미래 데이터로 저점을 미리 확인하지 않습니다.')
     with st.expander('🧬 AI가 스스로 발견한 이름 없는 캔들패턴 · 검증',expanded=True):
         st.caption('고정 이름(헤드앤숄더 등)으로 규칙화하지 않은 OHLCV 군집입니다. 군집은 데이터에서 생성하며 새 패턴이나 우위를 증명하는 것은 아닙니다.')
         if novel_report is None:

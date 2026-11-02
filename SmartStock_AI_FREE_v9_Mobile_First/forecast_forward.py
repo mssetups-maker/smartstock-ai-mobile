@@ -63,7 +63,20 @@ def _summary(records,now):
     settled=[r for r in records if r.get('status')=='settled']
     def agg(rows):
         n=len(rows)
-        return {'n':n,'accuracy_pct':round(100*np.mean([r['right_direction'] for r in rows]),2) if n else None,
+        # Conservative *proxy* for overlap, not an independence claim. Several
+        # symbols on the same date can move with the same market factor.
+        by_h={h:sorted({r['signal_date'] for r in rows if r['horizon']==h}) for h in HORIZONS}
+        independent_proxy=sum(max(1,math.ceil(len(ds)/h)) for h,ds in by_h.items() if ds)
+        true_rate=(float(np.mean([r['actual_up'] for r in rows])) if n else None)
+        brier=(float(np.mean([r['score_brier'] for r in rows])) if n else None)
+        baseline_accuracy=(true_rate*100 if n else None)  # always-up benchmark
+        return {'n':n,'distinct_signal_dates':len({r['signal_date'] for r in rows}),
+                'nonoverlap_proxy':independent_proxy,
+                'observed_up_rate_pct':round(true_rate*100,2) if n else None,
+                'always_up_accuracy_pct':round(baseline_accuracy,2) if n else None,
+                'average_score_minus_observed_up_pct':round(100*(np.mean([r['score'] for r in rows])-true_rate),2) if n else None,
+                'brier_improvement_over_fixed_half':round(.25-brier,5) if n else None,
+                'accuracy_pct':round(100*np.mean([r['right_direction'] for r in rows]),2) if n else None,
                 'brier':round(float(np.mean([r['score_brier'] for r in rows])),4) if n else None,
                 'baseline_0_5_brier':0.25 if n else None,
                 'avg_predicted_score':round(float(np.mean([r['score'] for r in rows])),4) if n else None}
@@ -73,7 +86,7 @@ def _summary(records,now):
             'paper_only':True,'total_logged':len(records),'pending':sum(r.get('status')=='pending' for r in records),
             'invalidated':sum(r.get('status')=='invalidated' for r in records),
             'settled':len(settled),'by_horizon':by_horizon,'by_symbol':by_symbol,
-            'reliability':'20건 이상 완료된 동일 기간을 우선 평가. 다른 기간/종목의 표본을 무조건 독립으로 보지 않음',
+            'reliability':'20건 이상 완료된 동일 기간을 우선 평가. nonoverlap_proxy는 겹침 보정의 참고값일 뿐 종목 간 독립성을 증명하지 않습니다.',
             'note':'모델 점수는 보정된 상승확률이 아닙니다. 검증 파일은 자동 모델 채택에 사용하지 않습니다.'}
 
 
@@ -115,7 +128,7 @@ def update_forecast_audit(stock_frames:dict[str,pd.DataFrame], *, root:Path,
                    'signal_close':round(float(frame.Close.iloc[-1]),7),
                    'horizon':h,'score':round(score,7),'status':'pending',
                    'prior_test_cases':int(result.get('historical_test_cases',0)),
-                   'source':'Yahoo auto_adjusted US daily bars; free/delayed; model RF-v1',
+                   'source':'Best-effort free daily bars (Yahoo adjusted or Stooq EOD); check price adjustment; model RF-v1',
                    'score_is_calibrated':False}
                 created+=1
             except Exception as exc:
