@@ -1,0 +1,13 @@
+{
+  "check_version": "10.12.0",
+  "timestamp_utc": "2026-11-02T15:51:06.742126+00:00",
+  "installation_status": "ok",
+  "last_run_status": "ok",
+  "last_run_version": "10.12.0",
+  "health_age_hours": 0.02,
+  "status": "ok",
+  "errors": [],
+  "local_missing": [],
+  "syntax_errors": [],
+  "note": "정적/저장 기록 진단이며 실시간 데이터·예측 실력 인증이 아닙니다."
+}

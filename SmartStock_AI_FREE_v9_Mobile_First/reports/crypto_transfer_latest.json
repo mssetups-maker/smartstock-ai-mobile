@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-11-02T15:33:28.986824+00:00",
+  "timestamp_utc": "2026-11-02T15:50:03.429733+00:00",
   "mode": "일일 주식·코인 전이학습: 5/21/63거래일, 독립 검증",
   "status": "ok",
   "integrated_into_live_stock_predictions": false,
@@ -22,6 +22,38 @@
       "first": "2021-10-15T00:00:00",
       "last": "2026-11-01T00:00:00",
       "deep_backfill": false
+    }
+  },
+  "stock_sources": {
+    "NVDA": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "MSFT": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "AAPL": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "CRWV": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 401
+    },
+    "TSLA": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "SPY": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
     }
   },
   "novel_pattern_research": {
@@ -52,7 +84,7 @@
     }
   },
   "paper_strategy_audit": {
-    "generated_utc": "2026-11-02T15:33:28.986824+00:00",
+    "generated_utc": "2026-11-02T15:50:03.429733+00:00",
     "engine": "10.8-strategy-rules-v1",
     "paper_only": true,
     "total_logged": 0,
@@ -92,7 +124,7 @@
   },
   "opportunity_funnel": {
     "version": "10.10-opportunity-funnel-1",
-    "timestamp_utc": "2026-11-02T15:33:28.986824+00:00",
+    "timestamp_utc": "2026-11-02T15:50:03.429733+00:00",
     "status": "ok",
     "covered_symbols": 6,
     "signal_symbols": 0,
@@ -226,9 +258,9 @@
     "status": "ok"
   },
   "wave_bottom_audit": {
-    "timestamp_utc": "2026-11-02T15:33:28.986824+00:00",
+    "timestamp_utc": "2026-11-02T15:50:03.429733+00:00",
     "status": "ok",
-    "new_candidates": 4,
+    "new_candidates": 0,
     "current_candidates": 4,
     "tracked_symbols": 6,
     "total_logged": 4,
@@ -286,12 +318,12 @@
           "last_eligible": "2023-01-09T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2855,
-      "stock_crypto_dev_brier": 0.2752,
-      "stock_holdout_brier": 0.2498,
-      "stock_crypto_holdout_brier": 0.2475,
-      "stock_holdout_accuracy": 0.5516,
-      "stock_crypto_holdout_accuracy": 0.5305,
+      "stock_dev_brier": 0.2876,
+      "stock_crypto_dev_brier": 0.2755,
+      "stock_holdout_brier": 0.2499,
+      "stock_crypto_holdout_brier": 0.2473,
+      "stock_holdout_accuracy": 0.5446,
+      "stock_crypto_holdout_accuracy": 0.5282,
       "symbol": "AAPL"
     },
     {
@@ -443,11 +475,11 @@
           "last_eligible": "2023-01-09T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2596,
+      "stock_dev_brier": 0.2592,
       "stock_crypto_dev_brier": 0.2382,
-      "stock_holdout_brier": 0.2656,
+      "stock_holdout_brier": 0.2657,
       "stock_crypto_holdout_brier": 0.2681,
-      "stock_holdout_accuracy": 0.5469,
+      "stock_holdout_accuracy": 0.5399,
       "stock_crypto_holdout_accuracy": 0.5587,
       "symbol": "SPY"
     },
@@ -543,12 +575,12 @@
           "last_eligible": "2023-04-24T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2635,
-      "stock_crypto_dev_brier": 0.2575,
-      "stock_holdout_brier": 0.2577,
-      "stock_crypto_holdout_brier": 0.2548,
-      "stock_holdout_accuracy": 0.4872,
-      "stock_crypto_holdout_accuracy": 0.5058,
+      "stock_dev_brier": 0.262,
+      "stock_crypto_dev_brier": 0.2572,
+      "stock_holdout_brier": 0.2576,
+      "stock_crypto_holdout_brier": 0.254,
+      "stock_holdout_accuracy": 0.4779,
+      "stock_crypto_holdout_accuracy": 0.5175,
       "symbol": "AAPL"
     },
     {
@@ -593,12 +625,12 @@
           "last_eligible": "2022-04-03T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2552,
-      "stock_crypto_dev_brier": 0.2748,
-      "stock_holdout_brier": 0.2808,
-      "stock_crypto_holdout_brier": 0.2848,
+      "stock_dev_brier": 0.2542,
+      "stock_crypto_dev_brier": 0.2744,
+      "stock_holdout_brier": 0.2805,
+      "stock_crypto_holdout_brier": 0.2852,
       "stock_holdout_accuracy": 0.4869,
-      "stock_crypto_holdout_accuracy": 0.3986,
+      "stock_crypto_holdout_accuracy": 0.4033,
       "symbol": "AAPL"
     },
     {
@@ -662,7 +694,7 @@
       "stock_holdout_brier": 0.2651,
       "stock_crypto_holdout_brier": 0.2634,
       "stock_holdout_accuracy": 0.4872,
-      "stock_crypto_holdout_accuracy": 0.4965,
+      "stock_crypto_holdout_accuracy": 0.4942,
       "symbol": "MSFT"
     },
     {
@@ -757,7 +789,7 @@
           "last_eligible": "2023-04-24T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2467,
+      "stock_dev_brier": 0.2468,
       "stock_crypto_dev_brier": 0.2509,
       "stock_holdout_brier": 0.2603,
       "stock_crypto_holdout_brier": 0.255,
@@ -857,9 +889,9 @@
           "last_eligible": "2023-04-24T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2572,
+      "stock_dev_brier": 0.2571,
       "stock_crypto_dev_brier": 0.2415,
-      "stock_holdout_brier": 0.2774,
+      "stock_holdout_brier": 0.2771,
       "stock_crypto_holdout_brier": 0.2668,
       "stock_holdout_accuracy": 0.4382,
       "stock_crypto_holdout_accuracy": 0.5291,

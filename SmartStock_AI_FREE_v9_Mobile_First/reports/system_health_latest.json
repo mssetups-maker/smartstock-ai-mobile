@@ -1,8 +1,42 @@
 {
-  "version": "10.11.2",
-  "timestamp_utc": "2026-11-02T15:33:28.986824+00:00",
+  "version": "10.12.0",
+  "timestamp_utc": "2026-11-02T15:50:03.429733+00:00",
   "status": "ok",
   "stock_crypto_experiments": 18,
+  "stock_sources": {
+    "NVDA": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "MSFT": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "AAPL": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "CRWV": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 401
+    },
+    "TSLA": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    },
+    "SPY": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-10-30 00:00:00",
+      "rows": 2512
+    }
+  },
+  "stock_symbols_analyzed": 6,
+  "crypto_symbols_analyzed": 3,
   "paper_strategy_status": "ok",
   "opportunity_diagnostic_status": "ok",
   "wave_bottom_audit_status": "ok",
