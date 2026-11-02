@@ -1,13 +1,30 @@
 {
   "version": "10.9",
-  "timestamp_utc": "2026-11-02T14:52:00.656616+00:00",
-  "status": "ok",
+  "timestamp_utc": "2026-11-02T15:01:50.120279+00:00",
+  "status": "partial",
   "stock_crypto_experiments": 18,
-  "paper_strategy_status": "ok",
-  "ml_forward_status": "ok",
+  "paper_strategy_status": "partial",
+  "ml_forward_status": "partial",
   "pattern_research_status": "ok",
-  "failed_subsystems": [],
-  "failure_count": 0,
+  "failed_subsystems": [
+    {
+      "source": "paper_audit/AAPL",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
+    },
+    {
+      "source": "paper_audit/SPY",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
+    },
+    {
+      "source": "forecast_forward/AAPL",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
+    },
+    {
+      "source": "forecast_forward/SPY",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
+    }
+  ],
+  "failure_count": 4,
   "model_auto_deployed": false,
   "note": "프로세스 완료는 예측 성능 향상이나 검증된 매수 신호를 뜻하지 않습니다."
 }
