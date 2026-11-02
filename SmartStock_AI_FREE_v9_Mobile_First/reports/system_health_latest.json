@@ -1,13 +1,18 @@
 {
   "version": "10.9",
-  "timestamp_utc": "2026-11-02T14:18:06.312399+00:00",
-  "status": "ok",
-  "stock_crypto_experiments": 18,
+  "timestamp_utc": "2026-11-02T14:35:10.076285+00:00",
+  "status": "partial",
+  "stock_crypto_experiments": 15,
   "paper_strategy_status": "ok",
   "ml_forward_status": "ok",
   "pattern_research_status": "ok",
-  "failed_subsystems": [],
-  "failure_count": 0,
+  "failed_subsystems": [
+    {
+      "source": "SPY",
+      "error": "OHLC 관계 오류가 있는 캔들 1개: 2026-11-02 00:00:00; 지표 계산을 중단합니다."
+    }
+  ],
+  "failure_count": 1,
   "model_auto_deployed": false,
   "note": "프로세스 완료는 예측 성능 향상이나 검증된 매수 신호를 뜻하지 않습니다."
 }
