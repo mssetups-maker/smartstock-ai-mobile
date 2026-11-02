@@ -17,6 +17,7 @@ from engine import clean_prices
 from paper_audit import update_paper_audit
 from forecast_forward import update_forecast_audit
 from opportunity_diagnostics import batch_diagnostics, save_diagnostics
+from wave_bottom_audit import update_bottom_audit
 from market_data_guard import daily_market_state
 
 ROOT=Path(__file__).resolve().parent
@@ -233,6 +234,17 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     except Exception as exc:
         opportunity={'status':'failed','errors':[str(exc)[:180]]}
         failure.append({'source':'opportunity_diagnostics','error':str(exc)[:180]})
+    # 10.11: corrective-low signals are timestamped at today's completed bar,
+    # settled only from future completed bars and never treated as orders.
+    wave_bottom_summary={'status':'not_run'}
+    try:
+        wave_bottom_summary=update_bottom_audit(stock_history,root=root,now=now)
+        if wave_bottom_summary.get('errors'):
+            failure.extend({'source':f"wave_bottom/{row['symbol']}",
+                            'error':row['error']} for row in wave_bottom_summary['errors'])
+    except Exception as exc:
+        wave_bottom_summary={'status':'failed','errors':[str(exc)[:180]]}
+        failure.append({'source':'wave_bottom_audit','error':str(exc)[:180]})
     # Prospective 10.8 PAPER journal: decisions made from completed daily
     # candles are saved today; only future observed candles can settle them.
     # This is separate from research and cannot place orders or deploy a model.
@@ -270,17 +282,18 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
              'why':'연구 결과만 저장하며, 독립 검증과 실제 미래 성과가 확인되기 전에는 실거래 모델을 교체하지 않습니다.',
              'crypto_coverage':coverage,'novel_pattern_research':novel_summary,
              'paper_strategy_audit':paper_summary,'opportunity_funnel':{k:v for k,v in opportunity.items() if k!='by_symbol'},
-             'forward_ml_audit':ml_summary,'horizons':list(horizons),
+             'forward_ml_audit':ml_summary,'wave_bottom_audit':{k:v for k,v in wave_bottom_summary.items() if k!='by_symbol'},'horizons':list(horizons),
              'results':reports,'errors':failure}
     # A compact, independently checkable health record for the mobile UI.
     # Keep 'partial' distinct from 'ok': a green workflow step does not prove
     # every data source, optional research module, or model succeeded.
     health_record={
-       'version':'10.10','timestamp_utc':now.isoformat(),
+       'version':'10.11','timestamp_utc':now.isoformat(),
        'status':payload['status'],
        'stock_crypto_experiments':len(reports),
        'paper_strategy_status':paper_summary.get('status','not_run'),
        'opportunity_diagnostic_status':opportunity.get('status','not_run'),
+       'wave_bottom_audit_status':wave_bottom_summary.get('status','not_run'),
        'opportunity_signal_symbols':opportunity.get('signal_symbols',0),
        'opportunity_near_miss_symbols':opportunity.get('near_miss_symbols',0),
        'ml_forward_status':ml_summary.get('status','not_run'),
@@ -293,7 +306,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     _dump(root/'reports'/'crypto_transfer_latest.json',payload)
     _append_daily_audit(root/'reports'/'crypto_transfer_history.jsonl',payload)
     # Visible status summary separate from the enormous transfer-audit JSON.
-    print('SMARTSTOCK_10_10_HEALTH '+json.dumps({
+    print('SMARTSTOCK_10_11_HEALTH '+json.dumps({
         'overall':payload['status'],
         'transfer_experiments':len(reports),
         'novel_patterns':novel_summary.get('status'),
@@ -303,9 +316,9 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         'near_miss_symbols':opportunity.get('near_miss_symbols',0),
         'forward_ml':ml_summary.get('status'),
         'data_issues':len(failure),
-        'models_auto_deployed':False},ensure_ascii=False))
+        'models_auto_deployed':False, 'bottom_watch':wave_bottom_summary.get('current_candidates',0)},ensure_ascii=False))
     if failure:
-        print('::warning title=SmartStock 10.10 partial analysis::'+
+        print('::warning title=SmartStock 10.11 partial analysis::'+
               str(len(failure))+' data/model subsystem errors. Review report JSON; job is not a complete success.')
     # Full research data is in reports/crypto_transfer_latest.json, NOT stdout.
     # Short structured telemetry avoids logs flooding 20,000+ characters.
@@ -318,6 +331,8 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         'forecast_total':ml_summary.get('total_logged',0),
         'opportunity_current':opportunity.get('signal_symbols',0),
         'opportunity_near_miss':opportunity.get('near_miss_symbols',0),
+        'wave_bottom_new':wave_bottom_summary.get('new_candidates',0),
+        'wave_bottom_future_evaluated':wave_bottom_summary.get('newly_evaluated_horizons',0),
     },ensure_ascii=False,default=str))
     if not reports:
         raise RuntimeError('전이학습 실험을 실행하지 못했습니다. 데이터 연결을 확인하세요.')
@@ -327,6 +342,8 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         raise RuntimeError('10.8 모의매매 평가 엔진이 실패했습니다. 이전 거래 기록을 안전하게 보존했습니다.')
     if opportunity.get('status')=='failed':
         raise RuntimeError('10.10 매매 기회 진단 엔진이 실패했습니다. 기존 기록은 보존했습니다.')
+    if wave_bottom_summary.get('status')=='failed':
+        raise RuntimeError('10.11 저점 후보 사후검증 엔진 오류: 보고서를 확인하세요.')
     if novel_summary.get('status')=='failed':
         raise RuntimeError('패턴 연구 엔진이 실패했습니다. reports/crypto_transfer_latest.json의 errors와 GitHub 실행 로그를 확인하세요.')
     return payload

@@ -232,6 +232,24 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         result.append('매수 신호 0건과 과거 가격 표본 부족은 다른 문제입니다. 이 표시는 검증되지 않은 규칙형 기회 탐색이며 매수 승인이 아닙니다.')
         return '\n'.join(result)
     # precedence matters: a question about options buy/sell rights is not a stock-buy question.
+    if any(t in q for t in ('2파 저점','2파저점','c파','z파','wxyxz','w-x-y-x-z','wxy','조정파 저점','바닥 매수','저점 매수','저점이야')) or focus=='2파·C파·Z파 저점':
+        research=snapshot.get('wave_bottoms') or {}
+        bottom_candidates=research.get('candidates') or []
+        if not bottom_candidates:
+            return ('**2파·C파·Z파 저점 관찰 후보를 확인하지 못했습니다.** '
+                    '완성된 가격 자료로 확정된 스윙 기준을 만족하지 않으면 번호를 만들지 않습니다. '
+                    '조정이 끝났다는 뜻도, 저점이 아니라는 뜻도 아닙니다.')
+        lines=['**현재 일봉 저점 탐색(규칙형 연구 후보)**']
+        for b in bottom_candidates:
+            lines.append(f"- **{b['kind']}** · {b['status']} · 예상 구간 {b['zone_low']:,.2f}~{b['zone_high']:,.2f} "
+                         f"· 실제 저가 {b['observed_low']:,.2f} ({b['observed_low_date']})")
+            if b.get('invalidation') is not None:
+                lines.append(f"  - 0파 무효화 {b['invalidation']:,.2f} 이하")
+            if b.get('reevaluate') is not None:
+                lines.append(f"  - 확장 재검토 참고 {b['reevaluate']:,.2f} (절대 무효화 아님)")
+            lines.extend('  - '+x for x in b.get('reasons',[])[:2])
+        lines.append('저점은 발생 당일에 확정할 수 없습니다. 새로운 캔들이 추가되어야 후행 확인되며 파동 명칭은 수정될 수 있습니다. 자동 주문은 하지 않습니다.')
+        return '\n'.join(lines)
     if any(x in q for x in ('전략','눌림목','시험 매수','모의매매','돌파 매수','매매 기회','적극 매수','균형형')):
         strategy=snapshot.get('trade_strategy') or '해당하는 전략 없음'
         stage=snapshot.get('trade_stage') or '미확인'
@@ -308,7 +326,7 @@ def call_gemini(question: str, snapshot: dict[str, Any], api_key: str,
     safe_data = {k: v for k, v in snapshot.items() if k in {
         'symbol','date','price','score','horizon','recommendation','evaluations',
         'long_signals','long_hit_rate','ma20','ma60','rsi','macd_hist',
-        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott','patterns','pattern_interval','novel_patterns'}}
+        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott','wave_bottoms','patterns','pattern_interval','novel_patterns'}}
     payload = {
         'systemInstruction':{'parts':[{'text':(
             '너는 투자정보 설명 도우미다. 한국어로 초보자도 이해할 수 있게 답하라. '

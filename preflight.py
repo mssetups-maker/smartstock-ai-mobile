@@ -21,7 +21,7 @@ CORE = (
     'paper_audit.py','pattern_discovery.py','point_in_time.py',
     'preflight.py','research.py','risk_engine.py','scheduled_scan.py',
     'sec_backfill.py','sec_history.py','strict_validation.py','timeframe.py',
-    'v8_features.py',
+    'v8_features.py','wave_bottoms.py','wave_bottom_audit.py',
 )
 
 
@@ -45,7 +45,7 @@ def main():
     state=check(Path(__file__).resolve().parent)
     print('SMARTSTOCK_PREFLIGHT '+json.dumps(state,ensure_ascii=False))
     if state['status']!='ok':
-        print('10.10 업데이트 ZIP의 프로그램 파일을 같은 폴더에 설치하고 다시 실행하세요.',file=sys.stderr)
+        print('10.11 업데이트 ZIP의 프로그램 파일을 같은 폴더에 설치하고 다시 실행하세요.',file=sys.stderr)
         return 2
     return 0
 
