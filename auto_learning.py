@@ -139,6 +139,16 @@ def _append_daily_audit(path:Path, payload:dict):
     path.write_text('\n'.join(json.dumps(e,ensure_ascii=False,default=str) for e in events[-366:])+'\n',encoding='utf-8')
 
 
+
+def prepare_completed_stock_daily(raw: pd.DataFrame, symbol: str, *, now: datetime) -> pd.DataFrame:
+    """Remove unclosed daily bars before validating the remaining OHLCV.
+
+    Data anomalies in historical/closed bars still raise ValueError.
+    """
+    closed, _note = daily_market_state(raw, symbol, now=now)
+    return clean_prices(closed)
+
+
 def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     now=now or datetime.now(timezone.utc)
     reports=[];failure=[];crypto={};coverage={};stock_history={}
@@ -178,10 +188,11 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     horizons=(5,21,63)
     for symbol in _read_watchlist(root)[:12]:
         try:
-            raw=clean_prices(stock_getter(symbol))
-            # Exclude US session's still-forming candle before ANY transfer
-            # research; paper/forward audits already use completed bars only.
-            raw,_bar_note=daily_market_state(raw,symbol,now=now)
+            # Remove the still-forming daily candle BEFORE OHLC validation.
+            # The provider can publish transient OHLC contradictions intraday;
+            # those must not cause a false failure for an otherwise valid prior day.
+            # Historical or closed candles remain strictly validated, never repaired.
+            raw=prepare_completed_stock_daily(stock_getter(symbol),symbol,now=now)
             if len(raw)<320:raise ValueError(f'주식 가격 자료가 {len(raw)}일뿐입니다.')
             stock_history[symbol]=raw
             for h in horizons:
@@ -288,7 +299,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     # Keep 'partial' distinct from 'ok': a green workflow step does not prove
     # every data source, optional research module, or model succeeded.
     health_record={
-       'version':'10.11','timestamp_utc':now.isoformat(),
+       'version':'10.11.1','timestamp_utc':now.isoformat(),
        'status':payload['status'],
        'stock_crypto_experiments':len(reports),
        'paper_strategy_status':paper_summary.get('status','not_run'),
@@ -306,7 +317,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     _dump(root/'reports'/'crypto_transfer_latest.json',payload)
     _append_daily_audit(root/'reports'/'crypto_transfer_history.jsonl',payload)
     # Visible status summary separate from the enormous transfer-audit JSON.
-    print('SMARTSTOCK_10_11_HEALTH '+json.dumps({
+    print('SMARTSTOCK_10_11_1_HEALTH '+json.dumps({
         'overall':payload['status'],
         'transfer_experiments':len(reports),
         'novel_patterns':novel_summary.get('status'),
@@ -318,7 +329,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         'data_issues':len(failure),
         'models_auto_deployed':False, 'bottom_watch':wave_bottom_summary.get('current_candidates',0)},ensure_ascii=False))
     if failure:
-        print('::warning title=SmartStock 10.11 partial analysis::'+
+        print('::warning title=SmartStock 10.11.1 partial analysis::'+
               str(len(failure))+' data/model subsystem errors. Review report JSON; job is not a complete success.')
     # Full research data is in reports/crypto_transfer_latest.json, NOT stdout.
     # Short structured telemetry avoids logs flooding 20,000+ characters.
