@@ -217,6 +217,20 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         if focus == '현재 판단':
             return '어느 숫자인지 화면을 직접 읽어 식별할 수는 없습니다. 위의 **질문 대상**에서 PCR, OI, IV, 목표가 등 해당 항목을 고른 뒤 다시 질문해 주세요.'
         q = focus.casefold()
+    # 10.10: a grounded diagnostic for exact rule failures (not generic "insufficient samples").
+    if any(x in q for x in ('왜 신호 0','왜 0건','조건 몇 개','부족한 조건','어떤 조건이 부족','매수 신호 없는 이유','조건별','신호가 안','매매 신호 0')):
+        report=snapshot.get('opportunity_diagnostics') or {}
+        rules=report.get('strategies') or {}
+        if not rules:
+            return '현재 완료 일봉으로 계산된 조건별 진단이 없습니다. 주가 데이터와 장 마감 상태를 확인하세요.'
+        result=[f"**{report.get('symbol','현재 종목')}의 전략별 조건 점검** · 완료 일봉 {report.get('bar_date','?')}"]
+        for record in rules.values():
+            result.append(f"**{record.get('name','전략')}** {record.get('passed',0)}/{record.get('total',0)} 충족")
+            missing=record.get('missing') or []
+            result.extend('- 미충족: '+str(name) for name in missing)
+            if not missing: result.append('- 가격 규칙은 모두 충족했습니다(실제 매수 승인 아님).')
+        result.append('매수 신호 0건과 과거 가격 표본 부족은 다른 문제입니다. 이 표시는 검증되지 않은 규칙형 기회 탐색이며 매수 승인이 아닙니다.')
+        return '\n'.join(result)
     # precedence matters: a question about options buy/sell rights is not a stock-buy question.
     if any(x in q for x in ('전략','눌림목','시험 매수','모의매매','돌파 매수','매매 기회','적극 매수','균형형')):
         strategy=snapshot.get('trade_strategy') or '해당하는 전략 없음'
