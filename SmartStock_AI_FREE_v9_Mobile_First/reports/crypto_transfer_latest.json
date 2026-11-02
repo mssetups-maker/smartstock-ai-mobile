@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-11-02T02:29:51.914361+00:00",
+  "timestamp_utc": "2026-11-02T13:04:06.075791+00:00",
   "mode": "일일 주식·코인 전이학습: 5/21/63거래일, 독립 검증",
   "status": "ok",
   "integrated_into_live_stock_predictions": false,
@@ -72,11 +72,11 @@
           "last_eligible": "2023-01-07T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2896,
-      "stock_crypto_dev_brier": 0.2736,
-      "stock_holdout_brier": 0.2545,
-      "stock_crypto_holdout_brier": 0.2496,
-      "stock_holdout_accuracy": 0.5527,
+      "stock_dev_brier": 0.2907,
+      "stock_crypto_dev_brier": 0.2737,
+      "stock_holdout_brier": 0.255,
+      "stock_crypto_holdout_brier": 0.2498,
+      "stock_holdout_accuracy": 0.5457,
       "stock_crypto_holdout_accuracy": 0.541,
       "symbol": "AAPL"
     },
@@ -129,7 +129,7 @@
           "last_eligible": "2023-01-07T00:00:00"
         }
       },
-      "stock_dev_brier": 0.273,
+      "stock_dev_brier": 0.2729,
       "stock_crypto_dev_brier": 0.2735,
       "stock_holdout_brier": 0.2813,
       "stock_crypto_holdout_brier": 0.2741,
@@ -229,12 +229,12 @@
           "last_eligible": "2023-01-07T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2692,
-      "stock_crypto_dev_brier": 0.2394,
-      "stock_holdout_brier": 0.272,
-      "stock_crypto_holdout_brier": 0.2743,
-      "stock_holdout_accuracy": 0.5012,
-      "stock_crypto_holdout_accuracy": 0.5504,
+      "stock_dev_brier": 0.2691,
+      "stock_crypto_dev_brier": 0.24,
+      "stock_holdout_brier": 0.2719,
+      "stock_crypto_holdout_brier": 0.2747,
+      "stock_holdout_accuracy": 0.5035,
+      "stock_crypto_holdout_accuracy": 0.5457,
       "symbol": "SPY"
     },
     {
@@ -329,12 +329,12 @@
           "last_eligible": "2023-04-20T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2615,
-      "stock_crypto_dev_brier": 0.2574,
-      "stock_holdout_brier": 0.2574,
-      "stock_crypto_holdout_brier": 0.2516,
-      "stock_holdout_accuracy": 0.5116,
-      "stock_crypto_holdout_accuracy": 0.5163,
+      "stock_dev_brier": 0.2647,
+      "stock_crypto_dev_brier": 0.2564,
+      "stock_holdout_brier": 0.2575,
+      "stock_crypto_holdout_brier": 0.2511,
+      "stock_holdout_accuracy": 0.5,
+      "stock_crypto_holdout_accuracy": 0.5233,
       "symbol": "AAPL"
     },
     {
@@ -379,12 +379,12 @@
           "last_eligible": "2022-04-03T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2533,
-      "stock_crypto_dev_brier": 0.2771,
-      "stock_holdout_brier": 0.2797,
-      "stock_crypto_holdout_brier": 0.2839,
-      "stock_holdout_accuracy": 0.4463,
-      "stock_crypto_holdout_accuracy": 0.4296,
+      "stock_dev_brier": 0.2529,
+      "stock_crypto_dev_brier": 0.2782,
+      "stock_holdout_brier": 0.2798,
+      "stock_crypto_holdout_brier": 0.2824,
+      "stock_holdout_accuracy": 0.4391,
+      "stock_crypto_holdout_accuracy": 0.432,
       "symbol": "AAPL"
     },
     {
@@ -443,11 +443,11 @@
           "last_eligible": "2023-04-20T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2463,
+      "stock_dev_brier": 0.2464,
       "stock_crypto_dev_brier": 0.2427,
-      "stock_holdout_brier": 0.2643,
+      "stock_holdout_brier": 0.2647,
       "stock_crypto_holdout_brier": 0.2611,
-      "stock_holdout_accuracy": 0.4837,
+      "stock_holdout_accuracy": 0.4814,
       "stock_crypto_holdout_accuracy": 0.4907,
       "symbol": "MSFT"
     },
@@ -494,8 +494,8 @@
         }
       },
       "stock_dev_brier": 0.2697,
-      "stock_crypto_dev_brier": 0.2622,
-      "stock_holdout_brier": 0.347,
+      "stock_crypto_dev_brier": 0.2623,
+      "stock_holdout_brier": 0.3468,
       "stock_crypto_holdout_brier": 0.3791,
       "stock_holdout_accuracy": 0.4248,
       "stock_crypto_holdout_accuracy": 0.3437,
@@ -596,7 +596,7 @@
       "stock_dev_brier": 0.2285,
       "stock_crypto_dev_brier": 0.2041,
       "stock_holdout_brier": 0.2594,
-      "stock_crypto_holdout_brier": 0.2667,
+      "stock_crypto_holdout_brier": 0.2665,
       "stock_holdout_accuracy": 0.5537,
       "stock_crypto_holdout_accuracy": 0.5274,
       "symbol": "NVDA"
@@ -645,7 +645,7 @@
       },
       "stock_dev_brier": 0.2551,
       "stock_crypto_dev_brier": 0.2403,
-      "stock_holdout_brier": 0.2729,
+      "stock_holdout_brier": 0.273,
       "stock_crypto_holdout_brier": 0.272,
       "stock_holdout_accuracy": 0.4674,
       "stock_crypto_holdout_accuracy": 0.5047,
@@ -694,10 +694,10 @@
         }
       },
       "stock_dev_brier": 0.2194,
-      "stock_crypto_dev_brier": 0.184,
-      "stock_holdout_brier": 0.2441,
+      "stock_crypto_dev_brier": 0.1839,
+      "stock_holdout_brier": 0.2442,
       "stock_crypto_holdout_brier": 0.2639,
-      "stock_holdout_accuracy": 0.5776,
+      "stock_holdout_accuracy": 0.5752,
       "stock_crypto_holdout_accuracy": 0.5656,
       "symbol": "SPY"
     },
