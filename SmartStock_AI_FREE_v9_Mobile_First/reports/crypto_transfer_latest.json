@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-11-02T13:04:06.075791+00:00",
+  "timestamp_utc": "2026-11-02T13:53:25.675678+00:00",
   "mode": "일일 주식·코인 전이학습: 5/21/63거래일, 독립 검증",
   "status": "ok",
   "integrated_into_live_stock_predictions": false,
@@ -23,6 +23,147 @@
       "last": "2026-11-01T00:00:00",
       "deep_backfill": false
     }
+  },
+  "novel_pattern_research": {
+    "status": "ok",
+    "markets": {
+      "stocks": {
+        "clusters": 32,
+        "validated_candidates": 0,
+        "holdout_cases": 3181
+      },
+      "crypto_daily": {
+        "clusters": 30,
+        "validated_candidates": 1,
+        "holdout_cases": 1599
+      },
+      "crypto_5min": {
+        "clusters": 15,
+        "validated_candidates": 0,
+        "holdout_cases": 670
+      }
+    },
+    "errors": [],
+    "forward_outcomes": {
+      "pending": 18,
+      "resolved": 0,
+      "evaluated_correct": 0,
+      "note": "예측 당시 관측 기록만 이후 가격이 확정되면 채점; 검증되지 않은 연구 후보"
+    }
+  },
+  "paper_strategy_audit": {
+    "generated_utc": "2026-11-02T13:53:25.675678+00:00",
+    "engine": "10.8-strategy-rules-v1",
+    "paper_only": true,
+    "total_logged": 0,
+    "pending": 0,
+    "settled": 0,
+    "invalidated": 0,
+    "win_rate_pct": null,
+    "win_rate_wilson95_pct": null,
+    "average_net_return_pct": null,
+    "average_net_after_0_6pct_cost": null,
+    "by_strategy": {
+      "breakout": {
+        "settled": 0,
+        "positive": 0,
+        "average_net_pct": null
+      },
+      "pullback": {
+        "settled": 0,
+        "positive": 0,
+        "average_net_pct": null
+      },
+      "rebound": {
+        "settled": 0,
+        "positive": 0,
+        "average_net_pct": null
+      }
+    },
+    "by_symbol": {},
+    "drift_warning": null,
+    "assessment": "최소 20건 미만: 성적 판단 유보",
+    "limitations": "모의 단일 거래 사례의 단순 평균. 포트폴리오 수익률 아님; 시세 지연/수정/배당/분할/체결오차 주의",
+    "new_candidates": 0,
+    "tracked_symbols": 6,
+    "errors": [],
+    "last_checked_day_utc": "2026-11-02",
+    "status": "ok"
+  },
+  "forward_ml_audit": {
+    "engine": "10.8-RF-prospective-v1",
+    "last_checked_day_utc": "2026-11-02",
+    "paper_only": true,
+    "total_logged": 12,
+    "pending": 12,
+    "invalidated": 0,
+    "settled": 0,
+    "by_horizon": {
+      "5": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      },
+      "21": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      }
+    },
+    "by_symbol": {
+      "AAPL": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      },
+      "CRWV": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      },
+      "MSFT": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      },
+      "NVDA": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      },
+      "SPY": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      },
+      "TSLA": {
+        "n": 0,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      }
+    },
+    "reliability": "20건 이상 완료된 동일 기간을 우선 평가. 다른 기간/종목의 표본을 무조건 독립으로 보지 않음",
+    "note": "모델 점수는 보정된 상승확률이 아닙니다. 검증 파일은 자동 모델 채택에 사용하지 않습니다.",
+    "new_snapshots": 12,
+    "tracked_symbols": 6,
+    "errors": [],
+    "status": "ok"
   },
   "horizons": [
     5,
@@ -129,9 +270,9 @@
           "last_eligible": "2023-01-07T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2729,
+      "stock_dev_brier": 0.273,
       "stock_crypto_dev_brier": 0.2735,
-      "stock_holdout_brier": 0.2813,
+      "stock_holdout_brier": 0.2818,
       "stock_crypto_holdout_brier": 0.2741,
       "stock_holdout_accuracy": 0.4895,
       "stock_crypto_holdout_accuracy": 0.4754,
@@ -229,12 +370,12 @@
           "last_eligible": "2023-01-07T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2691,
-      "stock_crypto_dev_brier": 0.24,
-      "stock_holdout_brier": 0.2719,
-      "stock_crypto_holdout_brier": 0.2747,
-      "stock_holdout_accuracy": 0.5035,
-      "stock_crypto_holdout_accuracy": 0.5457,
+      "stock_dev_brier": 0.2693,
+      "stock_crypto_dev_brier": 0.2394,
+      "stock_holdout_brier": 0.2717,
+      "stock_crypto_holdout_brier": 0.2743,
+      "stock_holdout_accuracy": 0.5082,
+      "stock_crypto_holdout_accuracy": 0.5504,
       "symbol": "SPY"
     },
     {
@@ -330,7 +471,7 @@
         }
       },
       "stock_dev_brier": 0.2647,
-      "stock_crypto_dev_brier": 0.2564,
+      "stock_crypto_dev_brier": 0.2565,
       "stock_holdout_brier": 0.2575,
       "stock_crypto_holdout_brier": 0.2511,
       "stock_holdout_accuracy": 0.5,
@@ -446,7 +587,7 @@
       "stock_dev_brier": 0.2464,
       "stock_crypto_dev_brier": 0.2427,
       "stock_holdout_brier": 0.2647,
-      "stock_crypto_holdout_brier": 0.2611,
+      "stock_crypto_holdout_brier": 0.2612,
       "stock_holdout_accuracy": 0.4814,
       "stock_crypto_holdout_accuracy": 0.4907,
       "symbol": "MSFT"
@@ -494,9 +635,9 @@
         }
       },
       "stock_dev_brier": 0.2697,
-      "stock_crypto_dev_brier": 0.2623,
-      "stock_holdout_brier": 0.3468,
-      "stock_crypto_holdout_brier": 0.3791,
+      "stock_crypto_dev_brier": 0.2622,
+      "stock_holdout_brier": 0.3484,
+      "stock_crypto_holdout_brier": 0.3799,
       "stock_holdout_accuracy": 0.4248,
       "stock_crypto_holdout_accuracy": 0.3437,
       "symbol": "MSFT"
@@ -645,7 +786,7 @@
       },
       "stock_dev_brier": 0.2551,
       "stock_crypto_dev_brier": 0.2403,
-      "stock_holdout_brier": 0.273,
+      "stock_holdout_brier": 0.2729,
       "stock_crypto_holdout_brier": 0.272,
       "stock_holdout_accuracy": 0.4674,
       "stock_crypto_holdout_accuracy": 0.5047,
@@ -694,9 +835,9 @@
         }
       },
       "stock_dev_brier": 0.2194,
-      "stock_crypto_dev_brier": 0.1839,
+      "stock_crypto_dev_brier": 0.184,
       "stock_holdout_brier": 0.2442,
-      "stock_crypto_holdout_brier": 0.2639,
+      "stock_crypto_holdout_brier": 0.264,
       "stock_holdout_accuracy": 0.5752,
       "stock_crypto_holdout_accuracy": 0.5656,
       "symbol": "SPY"

@@ -1,0 +1,38 @@
+{
+  "generated_utc": "2026-11-02T13:53:25.675678+00:00",
+  "engine": "10.8-strategy-rules-v1",
+  "paper_only": true,
+  "total_logged": 0,
+  "pending": 0,
+  "settled": 0,
+  "invalidated": 0,
+  "win_rate_pct": null,
+  "win_rate_wilson95_pct": null,
+  "average_net_return_pct": null,
+  "average_net_after_0_6pct_cost": null,
+  "by_strategy": {
+    "breakout": {
+      "settled": 0,
+      "positive": 0,
+      "average_net_pct": null
+    },
+    "pullback": {
+      "settled": 0,
+      "positive": 0,
+      "average_net_pct": null
+    },
+    "rebound": {
+      "settled": 0,
+      "positive": 0,
+      "average_net_pct": null
+    }
+  },
+  "by_symbol": {},
+  "drift_warning": null,
+  "assessment": "최소 20건 미만: 성적 판단 유보",
+  "limitations": "모의 단일 거래 사례의 단순 평균. 포트폴리오 수익률 아님; 시세 지연/수정/배당/분할/체결오차 주의",
+  "new_candidates": 0,
+  "tracked_symbols": 6,
+  "errors": [],
+  "last_checked_day_utc": "2026-11-02"
+}
