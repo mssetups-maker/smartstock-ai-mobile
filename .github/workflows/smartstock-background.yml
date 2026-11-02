@@ -3,17 +3,17 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'Run hourly monitoring or daily research'
+        description: 'Choose research mode (daily) or non-trading monitor (hourly)'
         required: true
         type: choice
         options:
-          - hourly
           - daily
-        default: hourly
+          - hourly
+        default: daily
   schedule:
-    # 15-minute attempt. Runner timing is best effort, not guaranteed.
-    - cron: '7,22,37,52 * * * *'
-    # Daily research, not continuous model training.
+    # Best effort, not an always-on process. Outside the top of each hour.
+    - cron: '17 * * * *'
+    # Daily research after the regular US close, UTC.
     - cron: '41 1 * * *'
 permissions:
   contents: write
@@ -23,45 +23,82 @@ concurrency:
 jobs:
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: SmartStock_AI_FREE_v9_Mobile_First
+        shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v6
         with:
           persist-credentials: true
-      - uses: actions/setup-python@v5
+      - name: Select mode
+        id: select_mode
+        env:
+          MANUAL_MODE: ${{ inputs.mode }}
+          JOB_CRON: ${{ github.event.schedule }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            mode="${MANUAL_MODE:-daily}"
+          elif [ "$JOB_CRON" = '41 1 * * *' ]; then
+            mode=daily
+          else
+            mode=hourly
+          fi
+          if [[ "$mode" != 'daily' && "$mode" != 'hourly' ]]; then
+            echo '::error::Unknown execution mode'; exit 2
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "SMARTSTOCK_MODE $mode"
+      - name: Check required modules before installing libraries
+        run: python preflight.py
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: SmartStock_AI_FREE_v9_Mobile_First/requirements.txt
       - name: Install libraries
-        run: python -m pip install -r requirements.txt requests
-      - name: Collect and analyze (15min monitoring / daily research)
-        env:
-          JOB_CRON: ${{ github.event.schedule }}
-          MANUAL_MODE: ${{ inputs.mode }}
+        run: python -m pip install -r requirements.txt
+      - name: Run regression tests for daily execution
+        if: steps.select_mode.outputs.mode == 'daily'
         run: |
-          if [ "$MANUAL_MODE" = "daily" ] || [ "$JOB_CRON" = '41 1 * * *' ]; then
-            python archive_collector.py
-            python auto_learning.py --mode daily
-            # Existing price-learning journal is separate from the crypto-transfer experiment.
-            python scheduled_scan.py --horizons 21
-          else
-            python auto_learning.py --mode hourly
-          fi
-      - name: Persist status and completed observations
+          python -m pip install 'pytest>=8,<10'
+          python -m pytest -q tests
+      - name: Archive optional context data
+        if: steps.select_mode.outputs.mode == 'daily'
+        id: archive
+        continue-on-error: true
+        run: python archive_collector.py
+      - name: Run market observations and research
+        id: analyze
+        env:
+          SMARTSTOCK_MODE: ${{ steps.select_mode.outputs.mode }}
+        run: python auto_learning.py --mode "$SMARTSTOCK_MODE"
+      - name: Run historical snapshot comparison
+        if: steps.select_mode.outputs.mode == 'daily' && steps.analyze.outcome == 'success'
+        id: daily_scan
+        run: python scheduled_scan.py --horizons 21
+      - name: Show local diagnostic status
+        if: always() && steps.checkout.outcome == 'success'
+        run: python system_check.py || true
+      - name: Save research and diagnosis files even on analysis failure
+        if: always() && steps.checkout.outcome == 'success'
         working-directory: .
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for dir in SmartStock_AI_FREE_v9_Mobile_First/data SmartStock_AI_FREE_v9_Mobile_First/reports; do
-            if [ -d "$dir" ]; then
-              git add -A -- "$dir"
-            fi
+          for directory in SmartStock_AI_FREE_v9_Mobile_First/data SmartStock_AI_FREE_v9_Mobile_First/reports; do
+            if [ -d "$directory" ]; then git add -A -- "$directory"; fi
           done
           if ! git diff --cached --quiet; then
-            git commit -m 'Auto record SmartStock observations and research'
-            git push
+            git commit -m 'Record SmartStock observations and diagnostics'
+            # Prevent silently discarding the user's newer commits.
+            git push origin HEAD:main
           fi
+      - name: Show optional archive errors
+        if: steps.archive.outcome == 'failure' || steps.daily_scan.outcome == 'failure'
+        run: |
+          echo '::warning title=Partial SmartStock run::An optional archive/snapshot task failed. Inspect the individual steps.'
