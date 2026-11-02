@@ -44,7 +44,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 10.7 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 10.8 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -567,7 +567,7 @@ else:
     st.success(f'**검증 기반 참고 신호: {strict.recommendation}** · {horizon_days}거래일')
 st.caption('상승점수는 실제 수익 확률이 아닙니다. 예측의 정확성 및 수익 보장 없음.')
 # A research watchlist is separate from the strict ML prediction recommendation.
-st.markdown('#### 🎯 AI 매매 기회 탐색 · 10.7')
+st.markdown('#### 🎯 AI 매매 기회 탐색 · 10.8')
 st.markdown(f'**현재 기회 단계: {trade_plan.stage}** · 전략: {trade_plan.strategy_name}')
 st.caption('여기서 시험 매수는 **실거래 권유가 아닌 모의매매 후보**입니다. AI 방향점수는 실제 상승확률이 아닙니다.')
 if trade_plan.blocks:
@@ -596,6 +596,77 @@ if trade_plan.entry is not None:
 else:
     st.caption('현재 확정 매수 전략 조건이 없어 진입·손절·목표를 억지로 생성하지 않습니다.')
 
+
+# 10.8 prospective monitor is a completely separate PAPER-ONLY record.
+# GitHub's daily job writes the files; viewing a ticker does not cause a
+# backdated prediction to be inserted into historical performance.
+with st.expander('📒 10.8 · 실제 이후 관측으로 평가하는 모의매매 성적', expanded=False):
+    st.caption('과거 백테스트와 별도입니다. 신호를 먼저 기록하고, 그 뒤 새롭게 관측된 봉만 평가합니다. 자동 주문 없음.')
+    _paper_path=Path(__file__).parent/'reports'/'paper_strategy_summary.json'
+    try:
+        if _paper_path.exists():
+            import json as _json
+            _paper=_json.loads(_paper_path.read_text(encoding='utf-8'))
+            _asof=_paper.get('last_checked_day_utc') or _paper.get('generated_utc','')[:10]
+            st.caption(f'마지막 기록 확인: {_asof} (UTC) · 모의매매 전용 · AI 학습 확률 아님')
+            if _asof and (pd.Timestamp.now(tz='UTC').date()-pd.Timestamp(_asof).date()).days>=3:
+                st.warning('최근 3일 이내 학습·모의매매 기록이 갱신되지 않았습니다. GitHub Actions 실행 상태를 점검하세요.')
+            a,b,c=st.columns(3)
+            a.metric('이후 관측 완료',f"{_paper.get('settled',0)}건")
+            b.metric('평가 대기',f"{_paper.get('pending',0)}건")
+            c.metric('현재 누적 신호',f"{_paper.get('total_logged',0)}건")
+            n=_paper.get('settled',0)
+            if n>=20:
+                st.write(f"완료된 모의 거래 승률: {_paper.get('win_rate_pct')}% · 평균 수익(비용 차감): {_paper.get('average_net_return_pct')}%")
+                interval=_paper.get('win_rate_wilson95_pct')
+                if interval:st.caption(f'단순 승률의 95% Wilson 참고 구간: {interval[0]}~{interval[1]}% (독립 표본 보장 아님)')
+            else:
+                st.info('아직 평가 완료 표본이 20건 미만입니다. 승률과 정확도를 판단할 수 없습니다.')
+            for key, name in [('breakout','상방 돌파'),('pullback','눌림목'),('rebound','단기 반등')]:
+                s=_paper.get('by_strategy',{}).get(key,{})
+                st.caption(f"{name}: 완료 {s.get('settled',0)}건 · 평균 모의 순수익 {s.get('average_net_pct','—')}%")
+            _sym=_paper.get('by_symbol',{}).get(symbol)
+            if _sym:
+                st.markdown(f'**현재 종목 {symbol}의 이후 평가**')
+                st.caption(f"완료 {_sym.get('settled',0)}건 · 평가 대기 {_sym.get('pending',0)}건 · 평균 순수익 {_sym.get('average_net_pct') if _sym.get('average_net_pct') is not None else '—'}%")
+            if _paper.get('drift_warning'):
+                st.warning(_paper['drift_warning'])
+            if _paper.get('errors'):
+                st.warning(f"수집·검증 일부 실패: {len(_paper['errors'])}건. GitHub Actions에서 세부 내역을 확인하세요.")
+            st.caption('이 결과는 중복되거나 연관된 종목별 가상 거래를 합산한 통계이며, 자산 전체의 실전 수익률이 아닙니다. 갭·가격 수정·기업행동·비용 변동·체결오차에 따라 실제 손익은 달라집니다.')
+        else:
+            st.info('모의매매 전진 검증 기록이 아직 없습니다. 10.8 설치 후 GitHub Actions의 daily를 실행하면 첫 기록을 생성합니다.')
+    except (OSError,ValueError,TypeError,KeyError) as exc:
+        st.warning(f'모의매매 성적 파일을 읽을 수 없습니다: {str(exc)[:120]}')
+
+with st.expander('🧠 10.8 · 그날 AI 상승점수의 실제 예측 성적', expanded=False):
+    st.caption('그날 기록한 AI 점수를 바꾸지 않고, 이후 5·21거래일이 지나서 실제 방향을 채점합니다. 백테스트와 별도이며 보정된 확률이 아닙니다.')
+    _mlfile=Path(__file__).parent/'reports'/'forward_ml_summary.json'
+    try:
+        if not _mlfile.exists():
+            st.info('미래 예측 사후검증 기록이 아직 없습니다. GitHub Actions daily를 실행한 다음 실제 시간이 경과해야 평가 건수가 쌓입니다.')
+        else:
+            import json as _mljson
+            _ml=_mljson.loads(_mlfile.read_text(encoding='utf-8'))
+            st.caption('마지막 실행 확인(UTC): '+str(_ml.get('last_checked_day_utc','—')))
+            if _ml.get('last_checked_day_utc') and (pd.Timestamp.now(tz='UTC').date()-pd.Timestamp(_ml['last_checked_day_utc']).date()).days>=3:
+                st.warning('예측 기록이 최근 3일 동안 갱신되지 않았습니다. GitHub Actions와 가격 수집을 확인하세요.')
+            a,b=st.columns(2)
+            a.metric('평가 완료',f"{_ml.get('settled',0)}건")
+            b.metric('결과 대기',f"{_ml.get('pending',0)}건")
+            for h in ('5','21'):
+                stats=_ml.get('by_horizon',{}).get(h,{})
+                n=stats.get('n',0)
+                if n>=20:
+                    st.write(f"**{h}거래일**: {n}건 · 방향 일치 {stats.get('accuracy_pct')}% · Brier 점수 {stats.get('brier')} (0.5 고정 기준 0.25)")
+                else:
+                    st.caption(f'{h}거래일: 완료 {n}건 · 검증 표본 부족 (권장 최소 20건)')
+            ticker=_ml.get('by_symbol',{}).get(symbol,{})
+            st.caption(f"현재 종목 {symbol} 사후평가 완료: {ticker.get('n',0)}건")
+            if _ml.get('errors'):st.warning(f"예측 기록/평가 일부 실패: {len(_ml['errors'])}건. GitHub 로그 확인 필요.")
+            st.caption('Brier는 작을수록 유리하지만, 관측 횟수·시장 국면·상관된 표본·거래비용에 따라 해석이 달라집니다. 새 모델을 자동 승격하지 않습니다.')
+    except (OSError,ValueError,TypeError,KeyError) as exc:
+        st.warning(f'예측 사후검증 파일을 읽을 수 없습니다: {str(exc)[:120]}')
 
 # Beginner-friendly grounded question assistant, built on the CURRENT displayed
 # ticker and audit. No API key is needed for default explanatory answers.

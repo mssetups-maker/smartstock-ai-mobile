@@ -14,6 +14,8 @@ from crypto_transfer import COINS, get_candles, transfer_audit
 from crypto_intraday import test_one_hour
 from pattern_discovery import research_batch, save_research, update_forward_journal
 from engine import clean_prices
+from paper_audit import update_paper_audit
+from forecast_forward import update_forecast_audit
 
 ROOT=Path(__file__).resolve().parent
 
@@ -21,8 +23,8 @@ def _dump(path:Path,obj):
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(obj,ensure_ascii=False,indent=2,default=str)+'\n',encoding='utf-8')
 
-def _read_watchlist():
-    f=ROOT/'config'/'watchlist.txt'
+def _read_watchlist(root:Path=ROOT):
+    f=root/'config'/'watchlist.txt'
     return [x.strip().upper() for x in f.read_text().splitlines() if x.strip() and not x.startswith('#')][:12]
 
 def hourly(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
@@ -69,7 +71,7 @@ def hourly(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
         import yfinance as yf
         stock_getter=lambda t: yf.Ticker(t).history(period='5d',interval='1h',auto_adjust=True,timeout=16)
     equities=[]
-    for symbol in _read_watchlist()[:6]:
+    for symbol in _read_watchlist(root)[:6]:
         try:
             raw=clean_prices(stock_getter(symbol))
             if raw.empty: raise ValueError('가격 기록이 없습니다.')
@@ -171,7 +173,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     # Model comparisons remain in their own development + untouched holdout
     # windows. Results are research only; do NOT deploy them to live UI.
     horizons=(5,21,63)
-    for symbol in _read_watchlist()[:12]:
+    for symbol in _read_watchlist(root)[:12]:
         try:
             raw=clean_prices(stock_getter(symbol))
             if len(raw)<320:raise ValueError(f'주식 가격 자료가 {len(raw)}일뿐입니다.')
@@ -213,6 +215,34 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     except Exception as exc:
         novel_summary={'status':'failed','errors':[str(exc)[:180]]}
         failure.append({'source':'pattern_discovery','error':str(exc)[:180]})
+    # Prospective 10.8 PAPER journal: decisions made from completed daily
+    # candles are saved today; only future observed candles can settle them.
+    # This is separate from research and cannot place orders or deploy a model.
+    paper_summary={'status':'not_run'}
+    try:
+        paper_summary=update_paper_audit(stock_history,root=root,now=now)
+        paper_summary['status']='partial' if paper_summary.get('errors') else 'ok'
+        if paper_summary.get('errors'):
+            failure.extend({'source':f"paper_audit/{item.get('symbol','?')}",
+                            'error':str(item.get('error',''))[:180]}
+                           for item in paper_summary['errors'])
+    except Exception as exc:
+        paper_summary={'status':'failed','error':str(exc)[:180]}
+        failure.append({'source':'paper_audit','error':str(exc)[:180]})
+    # A separate prospective ML SCORE journal. The recorded prediction
+    # cannot be recomputed with a future-trained model; only later realized
+    # prices settle its outcome. Never deploy a model on this basis alone.
+    ml_summary={'status':'not_run'}
+    try:
+        ml_summary=update_forecast_audit(stock_history,root=root,now=now)
+        ml_summary['status']='partial' if ml_summary.get('errors') else 'ok'
+        if ml_summary.get('errors'):
+            failure.extend({'source':f"forecast_forward/{item.get('symbol','?')}",
+                            'error':str(item.get('error',''))[:180]}
+                           for item in ml_summary['errors'])
+    except Exception as exc:
+        ml_summary={'status':'failed','error':str(exc)[:180]}
+        failure.append({'source':'forecast_forward','error':str(exc)[:180]})
     # Prioritize the 21-session forecast in the existing phone status view.
     reports.sort(key=lambda r:(r.get('horizon_days')!=21, r.get('symbol',''),r.get('horizon_days',0)))
     payload={'timestamp_utc':now.isoformat(),
@@ -220,13 +250,19 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
              'status':'ok' if reports and not failure else 'partial' if reports else 'failed',
              'integrated_into_live_stock_predictions':False,
              'why':'연구 결과만 저장하며, 독립 검증과 실제 미래 성과가 확인되기 전에는 실거래 모델을 교체하지 않습니다.',
-             'crypto_coverage':coverage,'novel_pattern_research':novel_summary,'horizons':list(horizons),
+             'crypto_coverage':coverage,'novel_pattern_research':novel_summary,
+             'paper_strategy_audit':paper_summary,
+             'forward_ml_audit':ml_summary,'horizons':list(horizons),
              'results':reports,'errors':failure}
     _dump(root/'reports'/'crypto_transfer_latest.json',payload)
     _append_daily_audit(root/'reports'/'crypto_transfer_history.jsonl',payload)
     print(json.dumps(payload,ensure_ascii=False,default=str))
     if not reports:
         raise RuntimeError('전이학습 실험을 실행하지 못했습니다. 데이터 연결을 확인하세요.')
+    if ml_summary.get('status')=='failed':
+        raise RuntimeError('10.8 AI 예측 사후평가 엔진이 실패했습니다. 기존 기록을 보존했습니다.')
+    if paper_summary.get('status')=='failed':
+        raise RuntimeError('10.8 모의매매 평가 엔진이 실패했습니다. 이전 거래 기록을 안전하게 보존했습니다.')
     if novel_summary.get('status')=='failed':
         raise RuntimeError('패턴 연구 엔진이 실패했습니다. reports/crypto_transfer_latest.json의 errors와 GitHub 실행 로그를 확인하세요.')
     return payload
