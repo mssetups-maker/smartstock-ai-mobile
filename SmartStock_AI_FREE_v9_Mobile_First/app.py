@@ -22,8 +22,8 @@ from engine import HORIZON, FEATURE_LABELS, analyze, clean_prices, indicators, r
 from options_engine import analyze_options, pick_expiry
 from intelligence import fundamentals_snapshot, news_headline_score, build_llm_context
 from research import adaptive_signals, wave_candidates, free_explanation
-from elliott_waves import estimate_wave, attach_wave_traces, wave_sensitivity_agreement
-from wave_auto_recount import estimate_with_recount
+from elliott_waves import estimate_wave
+from wave_multidegree import analyze_wave_multidegree, wave_degree_consistency, attach_multidegree_traces
 from analysis_decision import decide, render_streamlit_report
 from quality_guard import verify_and_rebuild, latest_signal, scenario_candidates, indicator_table, group_table, regime_diagnostic
 from stock_data_provider import fetch_stock_daily
@@ -51,7 +51,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 11.3 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 11.4 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -131,6 +131,10 @@ def load_prices(symbol:str):
     # Yahoo first, independent Stooq fallback when supported. Keep the raw
     # newest candle until the exchange close guard removes in-progress bars.
     return fetch_stock_daily(symbol)
+
+@st.cache_data(ttl=900,show_spinner=False)
+def do_wave_count(prices,requested_order=5):
+    return analyze_wave_multidegree(prices,requested_order=requested_order,lookback=min(4000,len(prices)))
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def do_analyze(raw, horizon_days):
@@ -333,7 +337,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">11.3</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">11.4</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -540,7 +544,7 @@ with st.spinner('지표 계산·모델 학습·백테스트 진행 중...'):
     res.explanation=strict.explanation
     adapted=adaptive_signals(df,horizon_days=horizon_days)
     waves=wave_candidates(df)
-    numbered_waves = estimate_with_recount(df, requested_order=5)
+    numbered_waves = do_wave_count(raw, requested_order=5)
     patterns_daily = detect_patterns(raw, pivot_span=3)
     novel_matches=[]
     novel_report=None
@@ -686,7 +690,7 @@ with st.expander('🧭 11.3 AI 교차 검증 · 근거별 최우선 시나리오
         st.caption('엘리엇 별도 분석: '+str(numbered_waves.get('current'))+
                    (' · 다른 스윙 민감도로 자동 재탐색' if numbered_waves.get('auto_recounted') else ''))
     else:
-        st.caption('엘리엇 파동: 여러 스윙 민감도로 재분석했지만 규칙 통과 후보가 없어 번호를 표시하지 않았습니다.')
+        st.caption('엘리엇 파동: 여러 차수에서 현재 활성 후보가 불충분합니다. 과거 완료 구조는 차트 메뉴에서 별도 조회할 수 있습니다.')
 
 # A research watchlist is separate from the strict ML prediction recommendation.
 st.markdown('#### 🎯 AI 매매 기회 탐색 · 10.9')
@@ -960,10 +964,11 @@ if active_section=='chart':
         show_cloud=aa.checkbox('일목 구름',value=True,key='chart_cloud')
         show_bb=bb.checkbox('볼린저',value=False,key='chart_bollinger')
         show_waves=aa.checkbox('엘리엇 파동 번호·기준점',value=True,key='chart_elliott')
+        show_wave_history=bb.checkbox('과거 완료 파동 함께 표시',value=True,key='chart_elliott_archive')
         show_patterns=bb.checkbox('차트패턴 기준선·목표가',value=True,key='chart_patterns')
         show_novel=aa.checkbox('AI가 발견한 새 캔들 군집',value=True,key='chart_novel_patterns')
-        wave_sensitivity=bb.selectbox('파동 민감도 (봉 수)',[3,5,8,12],index=1,key='chart_wave_sensitivity',
-          help='3=세밀한 파동, 12=큰 파동. 최근 N봉은 확정 저점·고점으로 인정하지 않습니다.')
+        wave_sensitivity=bb.selectbox('파동 민감도 (봉 수)',[3,5,8,12,21,34],index=1,key='chart_wave_sensitivity',
+          help='3=세밀한 파동, 34=더 큰 차수. 스윙 극점은 해당 N봉의 우측 확인이 끝나야 표시됩니다.')
     display_interval=chart_interval
     if (is_demo or uploaded is not None) and display_interval!='일봉':
         st.warning('가상/업로드 CSV는 일봉만 포함합니다. 다른 주기의 가격을 만들어내지 않고 일봉을 표시합니다.')
@@ -984,9 +989,10 @@ if active_section=='chart':
                                     (trade_plan.target1,'모의 전략 목표','#34d399')):
                 figure.add_hline(y=val,line_dash='dot',line_color=color,line_width=1,
                                  annotation_text=label,annotation_position='top right',row=1,col=1)
-        wave_display=estimate_with_recount(shown,requested_order=wave_sensitivity) if show_waves else None
+        wave_display=do_wave_count(shown,requested_order=wave_sensitivity) if show_waves else None
+        wave_history=wave_display.get('history',[]) if wave_display else []
         if wave_display and wave_display.get('auto_recounted'):
-            st.info(f'선택 민감도 {wave_sensitivity}에서 유효한 파동을 찾지 못해 {wave_display["order"]}봉으로 자동 재탐색했습니다. 파동 차수가 바뀌었을 수 있습니다.')
+            st.info(f'여러 차수를 비교한 결과 {wave_display["order"]}봉 외형 후보를 우선 표시합니다. 선택 민감도 {wave_sensitivity}봉과 차수가 다를 수 있습니다.')
         if wave_display and wave_display.get('nodes'):
             # The base chart shows only ONE consistent interpretation at a time.
             wave_choices=['기본 해석']+[f'대안 해석 {i+1}' for i in range(len(wave_display.get('alternatives',[])))]
@@ -996,8 +1002,11 @@ if active_section=='chart':
                 try:wave_display=wave_display['alternatives'][wave_choices.index(chosen_wave)-1]
                 except (IndexError,KeyError):pass
         patterns_for_display=detect_patterns(shown,pivot_span=3)
-        if wave_display and wave_display.get('nodes'):
-            figure=attach_wave_traces(figure,wave_display,cutoff=shown.index[max(0,len(shown)-chart_days)],latest=(shown.index[-1],shown.Close.iloc[-1]))
+        if wave_display and (wave_display.get('nodes') or (wave_history and show_wave_history)):
+            figure=attach_multidegree_traces(figure,wave_display,
+                history=wave_history if show_wave_history else [],
+                cutoff=shown.index[max(0,len(shown)-chart_days)],
+                latest=(shown.index[-1],shown.Close.iloc[-1]))
         if show_patterns and patterns_for_display:
             figure=attach_pattern_traces(figure,patterns_for_display,shown,
                 cutoff=shown.index[max(0,len(shown)-chart_days)])
@@ -1066,18 +1075,18 @@ if active_section=='chart':
     st.caption('손절·목표가는 최근 확정 스윙 저점/고점·ATR·손익비를 사용한 **롱 포지션 가정의 예시 가격**입니다. 이미 보유한 포지션의 실제 손절 주문은 아니며, 시장 상황에 따라 갱신됩니다. 스윙 추세선은 확정 지점으로만 표시합니다.')
     with st.expander('주요 보조지표 한눈에 보기'):
         st.dataframe(indicator_table(_signal),hide_index=True,use_container_width=True)
-    with st.expander('🌊 엘리엇 파동: 현재 몇 파? 시작점·고점·저점·무효화',expanded=True):
-        displayed_wave = wave_display if show_waves and 'wave_display' in locals() else numbered_waves
+    with st.expander('🌊 엘리엇 11.4: 현재·과거 파동 차수·복합조정 탐색',expanded=True):
+        displayed_wave = wave_display if show_waves and 'wave_display' in locals() and wave_display else numbered_waves
         st.markdown(f'**자동 판정: {displayed_wave["current"]}**')
         if displayed_wave['status']=='판정 보류':
-            st.warning('현재 파동 번호를 신뢰할 만한 단일 충격파로 판정할 수 없습니다. 임의로 3파/5파를 만들지 않습니다.')
+            st.warning('현재 활성 파동 후보는 검증을 통과하지 못했습니다. 과거 구조와 현재를 구별하며 임의 번호는 만들지 않습니다.')
             if displayed_wave.get('invalidation_event'):
                 detail=displayed_wave['invalidation_event']
                 st.error(f'기존 파동 시나리오 무효: {detail["rule"]} · 기준 {detail["threshold"]:,.2f}, 이후 극값 {detail["observed"]:,.2f}')
         else:
-            st.caption(f'방향: {displayed_wave["phase"]} · 마지막 확정 기준점: {displayed_wave["confirmed_through"]}')
+            st.caption(f'방향: {displayed_wave["phase"]} · 마지막 스윙 발생일: {displayed_wave["confirmed_through"]} (해당 민감도의 우측 봉 도착 후 확인)')
             st.dataframe(pd.DataFrame(displayed_wave['anchors']),hide_index=True,use_container_width=True)
-            st.markdown('**0·1·2·3·4·5·A·B·C 기준점 (각 파동의 날짜와 가격)**')
+            st.markdown('**파동 기준점 (0~5 · ABC · ABCDE · W/X/Y) 날짜와 가격**')
             st.dataframe(pd.DataFrame([{'파동':n['파동'],'날짜':n['날짜'],'가격':n['가격'],'구분':n['종류']}
                            for n in displayed_wave['nodes']]),hide_index=True,use_container_width=True)
             inv=displayed_wave['invalidation']
@@ -1086,21 +1095,34 @@ if active_section=='chart':
             else:
                 st.caption(inv['description'])
             st.caption('파동 형태 판정: '+displayed_wave.get('correction_status','미확정'))
+            st.caption('후보 작도 점수: '+str(displayed_wave.get('heuristic_score','미산정'))+'점 / 100 (규칙 기반 비교 점수, 확률 아님)')
+            st.caption('분류 규칙: '+', '.join(displayed_wave.get('hard_rules') or ['추가 분류 규칙 미확인']))
+            if not displayed_wave.get('internal_verified',False):
+                st.warning('중요: 하위 파동의 내부 5-3-5·3-3-5·3-3-3-3-3 구조까지 검증된 것은 아닙니다. 외형 후보입니다.')
             zone=(displayed_wave.get('projection') or {}).get('zone')
             if zone:
                 st.info(f'다음 파동 관찰 구간 (목표가·매수 신호 아님): '
                         f'{price_str(zone[0],symbol)} ~ {price_str(zone[1],symbol)}')
                 st.caption(displayed_wave['projection'].get('description',''))
         st.caption(displayed_wave['notes'])
+        archived=(wave_history if show_waves and 'wave_history' in locals() else numbered_waves.get('history',[]))
+        with st.expander('🗂 과거 완료 파동 구조 (사후 작도)',expanded=False):
+            if archived:
+                st.dataframe(pd.DataFrame([{'구조':z['phase'],'시작':z['nodes'][0]['날짜'],
+                    '종료':z['confirmed_through'],'기준 민감도':z['order'],
+                    '작도 비교 점수':z.get('heuristic_score')} for z in archived]),
+                    hide_index=True,use_container_width=True)
+                st.caption('과거 구조는 현재 시장의 파동으로 재사용하지 않습니다. 탐색 시점에 사후적으로 파악한 외형이며 과거 당시 예측 성공을 뜻하지 않습니다.')
+            else:st.caption('선택 범위 안에 표시할 과거 완료 구조가 없습니다.')
         with st.expander('🔬 다른 민감도 비교 · 파동 해석 안정성',expanded=False):
-            consistency=wave_sensitivity_agreement(shown,orders=(3,5,8))
+            consistency=wave_degree_consistency(shown,orders=(3,5,8,12,21,34))
             st.dataframe(pd.DataFrame(consistency['rows']),hide_index=True,use_container_width=True)
             if consistency['agreement']:
-                st.info('3·5·8봉에서 같은 단계의 파동 후보가 나왔습니다. 예측 적중률이 높다는 뜻은 아닙니다.')
+                st.info('비교한 민감도에서 같은 파동 후보가 나왔습니다. 예측 적중률이 높다는 뜻은 아닙니다.')
             else:
                 st.warning('민감도에 따라 파동 해석이 달라집니다. 번호를 확정하지 말고 다른 시나리오도 확인하세요.')
             st.caption(consistency['notes'])
-        if displayed_wave.get('nodes') and patterns_for_display:
+        if displayed_wave.get('nodes') and patterns_for_display and (displayed_wave.get('phase') or '').startswith(('일반 충격파','충격파 초기','대각형')):
             # Display convergence / conflict as a qualitative diagnostic ONLY.
             active_leg=( -displayed_wave['direction'] if displayed_wave['nodes'][-1]['파동'] in ('3','5','A','B')
                         else displayed_wave['direction'])
@@ -1585,4 +1607,4 @@ if active_section=='quick':
     st.caption('프로그램 화면은 새로고침 시 분석하고, GitHub 예약 실행에서는 조건 변경 시 Telegram 메시지를 발송할 수 있습니다. 자동 알림 사용에는 개인 Bot Token과 Chat ID를 GitHub Secrets에 별도 등록해야 합니다.')
     st.info('자동 알림은 앱이 아닌 GitHub Actions의 정기 실행에 의존하므로 실시간 알림이 아니며, 설정하지 않으면 완전히 꺼져 있습니다.')
 
-st.caption('SmartStock AI FREE 11.3 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
+st.caption('SmartStock AI FREE 11.4 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')

@@ -22,7 +22,7 @@ CORE = (
     'preflight.py','research.py','risk_engine.py','scheduled_scan.py',
     'sec_backfill.py','sec_history.py','stock_data_provider.py','strict_validation.py','timeframe.py',
     'v8_features.py','analysis_decision.py','wave_auto_recount.py',
-    'quality_guard.py','historical_evidence.py','wave_bottoms.py','wave_bottom_audit.py','system_check.py',
+    'quality_guard.py','historical_evidence.py','wave_multidegree.py','wave_bottoms.py','wave_bottom_audit.py','system_check.py',
 )
 
 
@@ -67,7 +67,7 @@ def main():
     state=check(Path(__file__).resolve().parent)
     print('SMARTSTOCK_PREFLIGHT '+json.dumps(state,ensure_ascii=False))
     if state['status']!='ok':
-        print('11.2 통합 업데이트 ZIP의 프로그램 파일을 같은 폴더에 설치하고 다시 실행하세요.',file=sys.stderr)
+        print('11.4 통합 업데이트 ZIP의 프로그램 파일을 같은 폴더에 설치하고 다시 실행하세요.',file=sys.stderr)
         return 2
     return 0
 
