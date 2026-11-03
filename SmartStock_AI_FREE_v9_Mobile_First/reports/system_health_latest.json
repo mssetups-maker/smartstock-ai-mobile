@@ -1,51 +1,68 @@
 {
-  "version": "10.12.0",
-  "timestamp_utc": "2026-11-02T15:50:03.429733+00:00",
-  "status": "ok",
+  "version": "11.2.0",
+  "timestamp_utc": "2026-11-03T02:27:03.160747+00:00",
+  "status": "partial",
   "stock_crypto_experiments": 18,
   "stock_sources": {
     "NVDA": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-10-30 00:00:00",
+      "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
     },
     "MSFT": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-10-30 00:00:00",
+      "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
     },
     "AAPL": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-10-30 00:00:00",
+      "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
     },
     "CRWV": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-10-30 00:00:00",
-      "rows": 401
+      "last_completed_bar": "2026-11-02 00:00:00",
+      "rows": 402
     },
     "TSLA": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-10-30 00:00:00",
+      "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
     },
     "SPY": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-10-30 00:00:00",
+      "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
     }
   },
   "stock_symbols_analyzed": 6,
   "crypto_symbols_analyzed": 3,
-  "paper_strategy_status": "ok",
-  "opportunity_diagnostic_status": "ok",
-  "wave_bottom_audit_status": "ok",
+  "paper_strategy_status": "partial",
+  "opportunity_diagnostic_status": "partial",
+  "wave_bottom_audit_status": "partial",
   "opportunity_signal_symbols": 0,
-  "opportunity_near_miss_symbols": 2,
-  "ml_forward_status": "ok",
+  "opportunity_near_miss_symbols": 1,
+  "ml_forward_status": "partial",
   "pattern_research_status": "ok",
-  "failed_subsystems": [],
-  "failure_count": 0,
+  "failed_subsystems": [
+    {
+      "source": "opportunity/SPY",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
+    },
+    {
+      "source": "wave_bottom/SPY",
+      "error": "고가/저가가 잘못된 캔들이 있습니다."
+    },
+    {
+      "source": "paper_audit/SPY",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
+    },
+    {
+      "source": "forecast_forward/SPY",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
+    }
+  ],
+  "failure_count": 4,
   "model_auto_deployed": false,
   "note": "프로세스 완료는 예측 성능 향상이나 검증된 매수 신호를 뜻하지 않습니다."
 }
