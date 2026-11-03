@@ -10,7 +10,7 @@ import json
 from preflight import check
 
 ROOT=Path(__file__).resolve().parent
-VERSION='10.12.0'
+VERSION='11.2.0'
 
 def inspect(root:Path=ROOT, now:datetime|None=None)->dict:
     root=Path(root)

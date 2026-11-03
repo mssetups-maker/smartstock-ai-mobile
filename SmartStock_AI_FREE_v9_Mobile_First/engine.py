@@ -97,6 +97,22 @@ def indicators(data: pd.DataFrame) -> pd.DataFrame:
     df.loc[(down == 0) & (up > 0),'RSI14'] = 100.0
     df.loc[(up == 0) & (down > 0),'RSI14'] = 0.0
     df['RSI14'] = df['RSI14'].fillna(50)
+    # Money Flow Index and On-Balance Volume are derived only from completed
+    # historical OHLCV, without fitting future observations.
+    # Zero/missing volume means the metric is unknown, not neutral evidence.
+    typical = (h + l + c) / 3.0
+    flow = typical * v
+    positive = flow.where(typical.diff() > 0, 0.0).rolling(14).sum()
+    negative = flow.where(typical.diff() < 0, 0.0).rolling(14).sum()
+    ratio = positive / negative.replace(0, np.nan)
+    df['MFI14'] = 100.0 - (100.0 / (1.0 + ratio))
+    df.loc[(negative == 0) & (positive > 0), 'MFI14'] = 100.0
+    df.loc[(positive == 0) & (negative > 0), 'MFI14'] = 0.0
+    df.loc[(positive == 0) & (negative == 0), 'MFI14'] = np.nan
+    df.loc[v.rolling(14).sum() <= 0, 'MFI14'] = np.nan
+    obv_contrib = np.sign(c.diff()).fillna(0) * v
+    df['OBV'] = obv_contrib.cumsum().where(v.rolling(20).sum() > 0)
+    df['OBV_slope20'] = df['OBV'].diff(20)
     true_range = pd.concat([h-l,(h-c.shift()).abs(),(l-c.shift()).abs()],axis=1).max(axis=1)
     df['ATR14'] = wilder(true_range, 14)
     plus_dm = h.diff()
@@ -311,4 +327,11 @@ def rule_summary(df: pd.DataFrame) -> list[tuple[str,str]]:
     x.append(('RSI(14)', f"{float(last['RSI14']):.1f}"))
     x.append(('ADX(14)', f"{float(last['ADX14']):.1f}"))
     x.append(('MACD', '양(+) 모멘텀' if float(last['MACD_hist'])>0 else '음(-) 모멘텀'))
+    for label, field, format_ in [('MFI(14)', 'MFI14', '{:.1f}'),
+                                  ('Slow Stochastic K(20)', 'STO_K20', '{:.1f}')]:
+        value = pd.to_numeric(last.get(field),errors='coerce')
+        if pd.notna(value) and math.isfinite(float(value)):
+            x.append((label, format_.format(value)))
+    if pd.notna(last.get('OBV_slope20',np.nan)):
+        x.append(('OBV 20봉 변화','증가' if last['OBV_slope20']>0 else '감소'))
     return x

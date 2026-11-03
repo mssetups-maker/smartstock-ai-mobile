@@ -321,7 +321,7 @@ def daily(*,root:Path=ROOT,coin_getter=get_candles,stock_getter=None,now=None):
     # Keep 'partial' distinct from 'ok': a green workflow step does not prove
     # every data source, optional research module, or model succeeded.
     health_record={
-       'version':'10.12.0','timestamp_utc':now.isoformat(),
+       'version':'11.2.0','timestamp_utc':now.isoformat(),
        'status':payload['status'],
        'stock_crypto_experiments':len(reports),
        'stock_sources':stock_sources, 'stock_symbols_analyzed':len(stock_history),

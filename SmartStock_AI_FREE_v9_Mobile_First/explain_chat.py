@@ -109,10 +109,17 @@ def glossary(topic: str, c: dict[str, Any]) -> str:
         inv=wave.get('invalidation') or {}
         danger=(f'{inv["price"]:,.2f}: {inv.get("description", "")}' if inv.get('price') is not None
                 else inv.get('description','단일 무효화 기준 없음'))
+        zone=(wave.get('projection') or {}).get('zone')
+        proj=(f'**다음 파동 관찰 구간(확률·목표가 아님):** {zone[0]:,.2f}~{zone[1]:,.2f}. '
+              if zone else '현재 산정된 다음 파동 관찰 구간은 없습니다. ')
+        alternatives=len(wave.get('alternatives') or [])
         return (f'**현재 파동 해석: {wave.get("current","미확정")}** · {wave.get("phase", "방향 미확정")} 후보입니다. '
                 f'**확인된 기준점:** {points}. **시나리오 재검토 기준:** {danger}. '
-                '이 번호는 현재 화면의 기본 일봉·민감도 5 기준입니다. 진행 중 파동 끝은 확정되지 않았고 '
-                '시간봉 또는 민감도를 바꾸면 다른 후보가 나올 수 있습니다. 매수 신호가 아닙니다.')
+                +proj+f'**기타 해석 후보:** {alternatives}개. '
+                'A·B·C는 형태가 유사한 후보일 뿐 내부 5-3-5/3-3-5 구조를 확정하지 않았습니다. '
+                'W-X-Y도 복합조정의 하위 구조 확인 없이 자동으로 번호를 붙이지 않습니다. '
+                '현재 화면의 기본 일봉·민감도 5 기준으로 설명하며, 다른 차트 주기와 민감도에서는 달라질 수 있습니다. '
+                '마지막 파동 끝은 미확정이고, 이 해석은 매수 신호가 아닙니다.')
     if topic == 'novel_pattern':
         items=c.get('novel_patterns') or []
         if not items:
@@ -208,6 +215,21 @@ def levels_answer(c: dict[str, Any]) -> str:
 def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현재 판단') -> str:
     """Deterministic, offline answer. Unknown requests are NOT made up."""
     q = question.strip().casefold()
+    # The opportunity collector supplies a different, auditable snapshot from
+    # the strict ML gate. Explain its actually failed checks, not blank defaults.
+    diag=snapshot.get('opportunity_diagnostics')
+    if isinstance(diag,dict) and any(k in q for k in ('매수 신호','매수신호','신호 0건','조건이 부족','미충족')):
+        lines=[f"**{diag.get('symbol','종목')} 완료 일봉 매매 후보 점검**",
+               f"기준일: {diag.get('bar_date','미확인')} · 평가 범위: {diag.get('period_bars','미확인')}봉",
+               f"현재 상태: {diag.get('classification','검증 미확인')}",
+               '상방 돌파·눌림목·반전 조건은 독립적인 고정 규칙이며 매수 승인이 아닙니다.']
+        for key,item in (diag.get('strategies') or {}).items():
+            if not isinstance(item,dict):continue
+            misses=item.get('missing') or []
+            lines.append(f"{item.get('name',key)}: "+('후보 조건 충족 (매수 승인 아님)' if item.get('signal_today') else
+                '미충족 — '+(', '.join(str(x) for x in misses[:7]) if misses else '상세 조건 확인 필요')))
+        lines.append('완료 일봉 기준의 조건 재평가 결과입니다. 현재 신호 개수는 체결 거래 건수나 미래 수익 확률이 아닙니다.')
+        return '\n\n'.join(lines)
     if not q:
         return '궁금한 내용을 입력해주세요.'
     if len(q) > 600:
@@ -217,39 +239,7 @@ def answer_question(question: str, snapshot: dict[str, Any], focus: str = '현�
         if focus == '현재 판단':
             return '어느 숫자인지 화면을 직접 읽어 식별할 수는 없습니다. 위의 **질문 대상**에서 PCR, OI, IV, 목표가 등 해당 항목을 고른 뒤 다시 질문해 주세요.'
         q = focus.casefold()
-    # 10.10: a grounded diagnostic for exact rule failures (not generic "insufficient samples").
-    if any(x in q for x in ('왜 신호 0','왜 0건','조건 몇 개','부족한 조건','어떤 조건이 부족','매수 신호 없는 이유','조건별','신호가 안','매매 신호 0')):
-        report=snapshot.get('opportunity_diagnostics') or {}
-        rules=report.get('strategies') or {}
-        if not rules:
-            return '현재 완료 일봉으로 계산된 조건별 진단이 없습니다. 주가 데이터와 장 마감 상태를 확인하세요.'
-        result=[f"**{report.get('symbol','현재 종목')}의 전략별 조건 점검** · 완료 일봉 {report.get('bar_date','?')}"]
-        for record in rules.values():
-            result.append(f"**{record.get('name','전략')}** {record.get('passed',0)}/{record.get('total',0)} 충족")
-            missing=record.get('missing') or []
-            result.extend('- 미충족: '+str(name) for name in missing)
-            if not missing: result.append('- 가격 규칙은 모두 충족했습니다(실제 매수 승인 아님).')
-        result.append('매수 신호 0건과 과거 가격 표본 부족은 다른 문제입니다. 이 표시는 검증되지 않은 규칙형 기회 탐색이며 매수 승인이 아닙니다.')
-        return '\n'.join(result)
     # precedence matters: a question about options buy/sell rights is not a stock-buy question.
-    if any(t in q for t in ('2파 저점','2파저점','c파','z파','wxyxz','w-x-y-x-z','wxy','조정파 저점','바닥 매수','저점 매수','저점이야')) or focus=='2파·C파·Z파 저점':
-        research=snapshot.get('wave_bottoms') or {}
-        bottom_candidates=research.get('candidates') or []
-        if not bottom_candidates:
-            return ('**2파·C파·Z파 저점 관찰 후보를 확인하지 못했습니다.** '
-                    '완성된 가격 자료로 확정된 스윙 기준을 만족하지 않으면 번호를 만들지 않습니다. '
-                    '조정이 끝났다는 뜻도, 저점이 아니라는 뜻도 아닙니다.')
-        lines=['**현재 일봉 저점 탐색(규칙형 연구 후보)**']
-        for b in bottom_candidates:
-            lines.append(f"- **{b['kind']}** · {b['status']} · 예상 구간 {b['zone_low']:,.2f}~{b['zone_high']:,.2f} "
-                         f"· 실제 저가 {b['observed_low']:,.2f} ({b['observed_low_date']})")
-            if b.get('invalidation') is not None:
-                lines.append(f"  - 0파 무효화 {b['invalidation']:,.2f} 이하")
-            if b.get('reevaluate') is not None:
-                lines.append(f"  - 확장 재검토 참고 {b['reevaluate']:,.2f} (절대 무효화 아님)")
-            lines.extend('  - '+x for x in b.get('reasons',[])[:2])
-        lines.append('저점은 발생 당일에 확정할 수 없습니다. 새로운 캔들이 추가되어야 후행 확인되며 파동 명칭은 수정될 수 있습니다. 자동 주문은 하지 않습니다.')
-        return '\n'.join(lines)
     if any(x in q for x in ('전략','눌림목','시험 매수','모의매매','돌파 매수','매매 기회','적극 매수','균형형')):
         strategy=snapshot.get('trade_strategy') or '해당하는 전략 없음'
         stage=snapshot.get('trade_stage') or '미확인'
@@ -326,7 +316,7 @@ def call_gemini(question: str, snapshot: dict[str, Any], api_key: str,
     safe_data = {k: v for k, v in snapshot.items() if k in {
         'symbol','date','price','score','horizon','recommendation','evaluations',
         'long_signals','long_hit_rate','ma20','ma60','rsi','macd_hist',
-        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott','wave_bottoms','patterns','pattern_interval','novel_patterns'}}
+        'stoch_k5','stoch_d5','levels','options','diagnostics','quality','elliott','patterns','pattern_interval','novel_patterns'}}
     payload = {
         'systemInstruction':{'parts':[{'text':(
             '너는 투자정보 설명 도우미다. 한국어로 초보자도 이해할 수 있게 답하라. '
