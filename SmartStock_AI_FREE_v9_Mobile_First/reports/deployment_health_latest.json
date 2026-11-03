@@ -1,12 +1,14 @@
 {
-  "check_version": "10.12.0",
-  "timestamp_utc": "2026-11-03T01:13:44.911033+00:00",
+  "check_version": "11.2.0",
+  "timestamp_utc": "2026-11-03T02:10:57.686897+00:00",
   "installation_status": "ok",
   "last_run_status": "ok",
   "last_run_version": "10.12.0",
-  "health_age_hours": 9.39,
-  "status": "ok",
-  "errors": [],
+  "health_age_hours": 10.35,
+  "status": "partial",
+  "errors": [
+    "last daily run version does not match installed version; rerun daily first"
+  ],
   "local_missing": [],
   "syntax_errors": [],
   "note": "정적/저장 기록 진단이며 실시간 데이터·예측 실력 인증이 아닙니다."
