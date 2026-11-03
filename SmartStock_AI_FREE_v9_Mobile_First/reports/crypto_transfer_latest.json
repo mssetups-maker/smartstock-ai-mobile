@@ -1,7 +1,7 @@
 {
-  "timestamp_utc": "2026-11-03T02:27:03.160747+00:00",
+  "timestamp_utc": "2026-11-03T09:46:57.040119+00:00",
   "mode": "일일 주식·코인 전이학습: 5/21/63거래일, 독립 검증",
-  "status": "partial",
+  "status": "ok",
   "integrated_into_live_stock_predictions": false,
   "why": "연구 결과만 저장하며, 독립 검증과 실제 미래 성과가 확인되기 전에는 실거래 모델을 교체하지 않습니다.",
   "crypto_coverage": {
@@ -25,17 +25,12 @@
     }
   },
   "stock_sources": {
+    "TSLA": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-02 00:00:00",
+      "rows": 2512
+    },
     "NVDA": {
-      "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-02 00:00:00",
-      "rows": 2512
-    },
-    "MSFT": {
-      "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-02 00:00:00",
-      "rows": 2512
-    },
-    "AAPL": {
       "provider": "Yahoo adjusted daily",
       "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
@@ -45,12 +40,17 @@
       "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 402
     },
-    "TSLA": {
+    "AAPL": {
       "provider": "Yahoo adjusted daily",
       "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
     },
-    "SPY": {
+    "MSFT": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-02 00:00:00",
+      "rows": 2512
+    },
+    "QQQ": {
       "provider": "Yahoo adjusted daily",
       "last_completed_bar": "2026-11-02 00:00:00",
       "rows": 2512
@@ -62,7 +62,7 @@
       "stocks": {
         "clusters": 32,
         "validated_candidates": 0,
-        "holdout_cases": 3160
+        "holdout_cases": 3188
       },
       "crypto_daily": {
         "clusters": 30,
@@ -72,19 +72,19 @@
       "crypto_5min": {
         "clusters": 15,
         "validated_candidates": 0,
-        "holdout_cases": 668
+        "holdout_cases": 689
       }
     },
     "errors": [],
     "forward_outcomes": {
-      "pending": 36,
+      "pending": 38,
       "resolved": 0,
       "evaluated_correct": 0,
       "note": "예측 당시 관측 기록만 이후 가격이 확정되면 채점; 검증되지 않은 연구 후보"
     }
   },
   "paper_strategy_audit": {
-    "generated_utc": "2026-11-03T02:27:03.160747+00:00",
+    "generated_utc": "2026-11-03T09:46:57.040119+00:00",
     "engine": "10.8-strategy-rules-v1",
     "paper_only": true,
     "total_logged": 0,
@@ -117,30 +117,20 @@
     "assessment": "최소 20건 미만: 성적 판단 유보",
     "limitations": "모의 단일 거래 사례의 단순 평균. 포트폴리오 수익률 아님; 시세 지연/수정/배당/분할/체결오차 주의",
     "new_candidates": 0,
-    "tracked_symbols": 5,
-    "errors": [
-      {
-        "symbol": "SPY",
-        "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
-      }
-    ],
+    "tracked_symbols": 6,
+    "errors": [],
     "last_checked_day_utc": "2026-11-03",
-    "status": "partial"
+    "status": "ok"
   },
   "opportunity_funnel": {
     "version": "10.10-opportunity-funnel-1",
-    "timestamp_utc": "2026-11-03T02:27:03.160747+00:00",
-    "status": "partial",
-    "covered_symbols": 5,
+    "timestamp_utc": "2026-11-03T09:46:57.040119+00:00",
+    "status": "ok",
+    "covered_symbols": 6,
     "signal_symbols": 0,
     "near_miss_symbols": 1,
-    "inactive_symbols": 5,
-    "errors": [
-      {
-        "symbol": "SPY",
-        "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
-      }
-    ],
+    "inactive_symbols": 6,
+    "errors": [],
     "paper_only": true,
     "warning": "후보가 많아지는 것 자체는 정확도 향상이 아닙니다. 규칙 진입 및 보유 기간별 실전 이후 성적을 따로 검증해야 합니다."
   },
@@ -148,8 +138,8 @@
     "engine": "10.8-RF-prospective-v1",
     "last_checked_day_utc": "2026-11-03",
     "paper_only": true,
-    "total_logged": 22,
-    "pending": 22,
+    "total_logged": 24,
+    "pending": 24,
     "invalidated": 0,
     "settled": 0,
     "by_horizon": {
@@ -233,6 +223,19 @@
         "baseline_0_5_brier": null,
         "avg_predicted_score": null
       },
+      "QQQ": {
+        "n": 0,
+        "distinct_signal_dates": 0,
+        "nonoverlap_proxy": 0,
+        "observed_up_rate_pct": null,
+        "always_up_accuracy_pct": null,
+        "average_score_minus_observed_up_pct": null,
+        "brier_improvement_over_fixed_half": null,
+        "accuracy_pct": null,
+        "brier": null,
+        "baseline_0_5_brier": null,
+        "avg_predicted_score": null
+      },
       "SPY": {
         "n": 0,
         "distinct_signal_dates": 0,
@@ -262,32 +265,22 @@
     },
     "reliability": "20건 이상 완료된 동일 기간을 우선 평가. nonoverlap_proxy는 겹침 보정의 참고값일 뿐 종목 간 독립성을 증명하지 않습니다.",
     "note": "모델 점수는 보정된 상승확률이 아닙니다. 검증 파일은 자동 모델 채택에 사용하지 않습니다.",
-    "new_snapshots": 10,
-    "tracked_symbols": 5,
-    "errors": [
-      {
-        "symbol": "SPY",
-        "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
-      }
-    ],
-    "status": "partial"
+    "new_snapshots": 2,
+    "tracked_symbols": 6,
+    "errors": [],
+    "status": "ok"
   },
   "wave_bottom_audit": {
-    "timestamp_utc": "2026-11-03T02:27:03.160747+00:00",
-    "status": "partial",
-    "new_candidates": 4,
-    "current_candidates": 4,
-    "tracked_symbols": 5,
-    "total_logged": 8,
+    "timestamp_utc": "2026-11-03T09:46:57.040119+00:00",
+    "status": "ok",
+    "new_candidates": 1,
+    "current_candidates": 5,
+    "tracked_symbols": 6,
+    "total_logged": 9,
     "newly_evaluated_horizons": 0,
     "evaluated_5": 0,
     "evaluated_21": 0,
-    "errors": [
-      {
-        "symbol": "SPY",
-        "error": "고가/저가가 잘못된 캔들이 있습니다."
-      }
-    ],
+    "errors": [],
     "note": "기간 종료 전 성적을 미리 계산하지 않습니다. 매수 주문 또는 체결 결과가 아닌 종가 대비 참고 수익률입니다."
   },
   "horizons": [
@@ -355,9 +348,9 @@
     },
     {
       "horizon_days": 21,
-      "status": "검증 부족 — 기존 주식 모델 유지",
+      "status": "연구상 성능 개선 후보 — 실거래 모델 미교체",
       "adopted": false,
-      "reason": "코인을 합친 모델이 두 시계열 평가 구간에서 일관된 개선을 입증하지 못했습니다.",
+      "reason": "두 시간순 평가 구간에서 Brier가 개선됐습니다. 다른 종목·시장 국면의 반복 검증이 더 필요합니다.",
       "stock_training_cases": 1478,
       "development_cases": 426,
       "holdout_cases": 426,
@@ -395,12 +388,12 @@
           "last_eligible": "2023-01-10T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2705,
-      "stock_crypto_dev_brier": 0.2706,
-      "stock_holdout_brier": 0.2844,
-      "stock_crypto_holdout_brier": 0.2782,
-      "stock_holdout_accuracy": 0.4601,
-      "stock_crypto_holdout_accuracy": 0.4718,
+      "stock_dev_brier": 0.2707,
+      "stock_crypto_dev_brier": 0.2701,
+      "stock_holdout_brier": 0.2838,
+      "stock_crypto_holdout_brier": 0.2777,
+      "stock_holdout_accuracy": 0.4742,
+      "stock_crypto_holdout_accuracy": 0.4742,
       "symbol": "MSFT"
     },
     {
@@ -495,13 +488,13 @@
           "last_eligible": "2023-01-10T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2676,
-      "stock_crypto_dev_brier": 0.2383,
-      "stock_holdout_brier": 0.2716,
-      "stock_crypto_holdout_brier": 0.2697,
-      "stock_holdout_accuracy": 0.5047,
-      "stock_crypto_holdout_accuracy": 0.5446,
-      "symbol": "SPY"
+      "stock_dev_brier": 0.2527,
+      "stock_crypto_dev_brier": 0.2282,
+      "stock_holdout_brier": 0.2709,
+      "stock_crypto_holdout_brier": 0.2619,
+      "stock_holdout_accuracy": 0.5258,
+      "stock_crypto_holdout_accuracy": 0.5352,
+      "symbol": "QQQ"
     },
     {
       "horizon_days": 21,
@@ -596,11 +589,11 @@
         }
       },
       "stock_dev_brier": 0.2617,
-      "stock_crypto_dev_brier": 0.2611,
+      "stock_crypto_dev_brier": 0.2612,
       "stock_holdout_brier": 0.2549,
-      "stock_crypto_holdout_brier": 0.2508,
+      "stock_crypto_holdout_brier": 0.2512,
       "stock_holdout_accuracy": 0.4732,
-      "stock_crypto_holdout_accuracy": 0.5221,
+      "stock_crypto_holdout_accuracy": 0.5268,
       "symbol": "AAPL"
     },
     {
@@ -709,12 +702,12 @@
           "last_eligible": "2023-04-25T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2425,
-      "stock_crypto_dev_brier": 0.2414,
-      "stock_holdout_brier": 0.2651,
-      "stock_crypto_holdout_brier": 0.2567,
-      "stock_holdout_accuracy": 0.5128,
-      "stock_crypto_holdout_accuracy": 0.5152,
+      "stock_dev_brier": 0.242,
+      "stock_crypto_dev_brier": 0.2418,
+      "stock_holdout_brier": 0.2654,
+      "stock_crypto_holdout_brier": 0.2564,
+      "stock_holdout_accuracy": 0.5152,
+      "stock_crypto_holdout_accuracy": 0.5012,
       "symbol": "MSFT"
     },
     {
@@ -759,12 +752,12 @@
           "last_eligible": "2022-04-04T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2646,
-      "stock_crypto_dev_brier": 0.265,
-      "stock_holdout_brier": 0.351,
-      "stock_crypto_holdout_brier": 0.375,
-      "stock_holdout_accuracy": 0.389,
-      "stock_crypto_holdout_accuracy": 0.3461,
+      "stock_dev_brier": 0.2643,
+      "stock_crypto_dev_brier": 0.2665,
+      "stock_holdout_brier": 0.3517,
+      "stock_crypto_holdout_brier": 0.3739,
+      "stock_holdout_accuracy": 0.3914,
+      "stock_crypto_holdout_accuracy": 0.3437,
       "symbol": "MSFT"
     },
     {
@@ -809,9 +802,9 @@
           "last_eligible": "2023-04-25T00:00:00"
         }
       },
-      "stock_dev_brier": 0.25,
+      "stock_dev_brier": 0.2499,
       "stock_crypto_dev_brier": 0.2497,
-      "stock_holdout_brier": 0.2602,
+      "stock_holdout_brier": 0.2603,
       "stock_crypto_holdout_brier": 0.2561,
       "stock_holdout_accuracy": 0.4872,
       "stock_crypto_holdout_accuracy": 0.5012,
@@ -909,13 +902,13 @@
           "last_eligible": "2023-04-25T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2568,
-      "stock_crypto_dev_brier": 0.2393,
-      "stock_holdout_brier": 0.2754,
-      "stock_crypto_holdout_brier": 0.2667,
-      "stock_holdout_accuracy": 0.4545,
+      "stock_dev_brier": 0.2458,
+      "stock_crypto_dev_brier": 0.237,
+      "stock_holdout_brier": 0.2517,
+      "stock_crypto_holdout_brier": 0.2505,
+      "stock_holdout_accuracy": 0.5152,
       "stock_crypto_holdout_accuracy": 0.5268,
-      "symbol": "SPY"
+      "symbol": "QQQ"
     },
     {
       "horizon_days": 63,
@@ -959,13 +952,13 @@
           "last_eligible": "2022-04-04T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2222,
-      "stock_crypto_dev_brier": 0.1804,
-      "stock_holdout_brier": 0.2444,
-      "stock_crypto_holdout_brier": 0.2591,
-      "stock_holdout_accuracy": 0.5823,
-      "stock_crypto_holdout_accuracy": 0.568,
-      "symbol": "SPY"
+      "stock_dev_brier": 0.2168,
+      "stock_crypto_dev_brier": 0.1857,
+      "stock_holdout_brier": 0.2595,
+      "stock_crypto_holdout_brier": 0.2781,
+      "stock_holdout_accuracy": 0.5656,
+      "stock_crypto_holdout_accuracy": 0.5561,
+      "symbol": "QQQ"
     },
     {
       "horizon_days": 5,
@@ -1068,22 +1061,5 @@
       "symbol": "TSLA"
     }
   ],
-  "errors": [
-    {
-      "source": "opportunity/SPY",
-      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
-    },
-    {
-      "source": "wave_bottom/SPY",
-      "error": "고가/저가가 잘못된 캔들이 있습니다."
-    },
-    {
-      "source": "paper_audit/SPY",
-      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
-    },
-    {
-      "source": "forecast_forward/SPY",
-      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
-    }
-  ]
+  "errors": []
 }

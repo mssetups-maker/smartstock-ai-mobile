@@ -1,2 +1,2 @@
 {"date": "2026-11-02", "status": "ok", "markets": {"stocks": {"experiments": 32, "validated": 0, "holdout": 3181}, "crypto_daily": {"experiments": 30, "validated": 1, "holdout": 1599}, "crypto_5min": {"experiments": 15, "validated": 0, "holdout": 652}}}
-{"date": "2026-11-03", "status": "ok", "markets": {"stocks": {"experiments": 32, "validated": 0, "holdout": 3160}, "crypto_daily": {"experiments": 30, "validated": 0, "holdout": 1596}, "crypto_5min": {"experiments": 15, "validated": 0, "holdout": 668}}}
+{"date": "2026-11-03", "status": "ok", "markets": {"stocks": {"experiments": 32, "validated": 0, "holdout": 3188}, "crypto_daily": {"experiments": 30, "validated": 0, "holdout": 1596}, "crypto_5min": {"experiments": 15, "validated": 0, "holdout": 689}}}

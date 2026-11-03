@@ -1,97 +1,17 @@
 {
-  "timestamp_utc": "2026-11-03T02:27:03.160747+00:00",
-  "status": "partial",
-  "new_candidates": 4,
-  "current_candidates": 4,
-  "tracked_symbols": 5,
-  "total_logged": 8,
+  "timestamp_utc": "2026-11-03T09:46:57.040119+00:00",
+  "status": "ok",
+  "new_candidates": 1,
+  "current_candidates": 5,
+  "tracked_symbols": 6,
+  "total_logged": 9,
   "newly_evaluated_horizons": 0,
   "evaluated_5": 0,
   "evaluated_21": 0,
-  "errors": [
-    {
-      "symbol": "SPY",
-      "error": "고가/저가가 잘못된 캔들이 있습니다."
-    }
-  ],
+  "errors": [],
   "by_symbol": {
+    "TSLA": [],
     "NVDA": [],
-    "MSFT": [
-      {
-        "kind": "2파 저점",
-        "status": "관찰 구간",
-        "invalidated": false,
-        "confirmed": false,
-        "zone_low": 499.94211,
-        "zone_high": 518.57501,
-        "observed_low": 504.95999,
-        "observed_low_date": "2026-11-02",
-        "confirmed_asof": null,
-        "latest_price": 507.12,
-        "invalidation": 486.0,
-        "reevaluate": null,
-        "anchors": [
-          {
-            "label": "0 (시작)",
-            "date": "2026-09-10",
-            "price": 486.0,
-            "position": 2474
-          },
-          {
-            "label": "1 (상승 고점)",
-            "date": "2026-10-13",
-            "price": 551.15002,
-            "position": 2497
-          }
-        ],
-        "entry_trigger": 526.0,
-        "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
-        "reasons": [
-          "상승 1파 뒤 50~78.6% 되돌림 구간. 0파 침범 시 상승 2파 시나리오 무효.",
-          "기준 저점 관측 504.96 (2026-11-02), 예상 구간 499.94~518.58",
-          "후행 확정 지점은 좌우 스윙 민감도만큼의 캔들이 지난 후 확인하므로 저점 당일 확정할 수 없습니다."
-        ],
-        "research_only": true
-      }
-    ],
-    "AAPL": [
-      {
-        "kind": "2파 저점",
-        "status": "관찰 구간",
-        "invalidated": false,
-        "confirmed": false,
-        "zone_low": 330.59076,
-        "zone_high": 336.98,
-        "observed_low": 334.35001,
-        "observed_low_date": "2026-10-30",
-        "confirmed_asof": null,
-        "latest_price": 338.32001,
-        "invalidation": 325.81,
-        "reevaluate": null,
-        "anchors": [
-          {
-            "label": "0 (시작)",
-            "date": "2026-10-01",
-            "price": 325.81,
-            "position": 2489
-          },
-          {
-            "label": "1 (상승 고점)",
-            "date": "2026-10-13",
-            "price": 348.14999,
-            "position": 2497
-          }
-        ],
-        "entry_trigger": 349.19,
-        "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
-        "reasons": [
-          "상승 1파 뒤 50~78.6% 되돌림 구간. 0파 침범 시 상승 2파 시나리오 무효.",
-          "기준 저점 관측 334.35 (2026-10-30), 예상 구간 330.59~336.98",
-          "후행 확정 지점은 좌우 스윙 민감도만큼의 캔들이 지난 후 확인하므로 저점 당일 확정할 수 없습니다."
-        ],
-        "research_only": true
-      }
-    ],
     "CRWV": [
       {
         "kind": "C파 저점",
@@ -190,7 +110,138 @@
         "research_only": true
       }
     ],
-    "TSLA": []
+    "AAPL": [
+      {
+        "kind": "2파 저점",
+        "status": "관찰 구간",
+        "invalidated": false,
+        "confirmed": false,
+        "zone_low": 330.59076,
+        "zone_high": 336.98,
+        "observed_low": 334.35001,
+        "observed_low_date": "2026-10-30",
+        "confirmed_asof": null,
+        "latest_price": 338.32001,
+        "invalidation": 325.81,
+        "reevaluate": null,
+        "anchors": [
+          {
+            "label": "0 (시작)",
+            "date": "2026-10-01",
+            "price": 325.81,
+            "position": 2489
+          },
+          {
+            "label": "1 (상승 고점)",
+            "date": "2026-10-13",
+            "price": 348.14999,
+            "position": 2497
+          }
+        ],
+        "entry_trigger": 349.19,
+        "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
+        "reasons": [
+          "상승 1파 뒤 50~78.6% 되돌림 구간. 0파 침범 시 상승 2파 시나리오 무효.",
+          "기준 저점 관측 334.35 (2026-10-30), 예상 구간 330.59~336.98",
+          "후행 확정 지점은 좌우 스윙 민감도만큼의 캔들이 지난 후 확인하므로 저점 당일 확정할 수 없습니다."
+        ],
+        "research_only": true
+      }
+    ],
+    "MSFT": [
+      {
+        "kind": "2파 저점",
+        "status": "관찰 구간",
+        "invalidated": false,
+        "confirmed": false,
+        "zone_low": 499.94211,
+        "zone_high": 518.57501,
+        "observed_low": 504.95999,
+        "observed_low_date": "2026-11-02",
+        "confirmed_asof": null,
+        "latest_price": 507.12,
+        "invalidation": 486.0,
+        "reevaluate": null,
+        "anchors": [
+          {
+            "label": "0 (시작)",
+            "date": "2026-09-10",
+            "price": 486.0,
+            "position": 2474
+          },
+          {
+            "label": "1 (상승 고점)",
+            "date": "2026-10-13",
+            "price": 551.15002,
+            "position": 2497
+          }
+        ],
+        "entry_trigger": 526.0,
+        "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
+        "reasons": [
+          "상승 1파 뒤 50~78.6% 되돌림 구간. 0파 침범 시 상승 2파 시나리오 무효.",
+          "기준 저점 관측 504.96 (2026-11-02), 예상 구간 499.94~518.58",
+          "후행 확정 지점은 좌우 스윙 민감도만큼의 캔들이 지난 후 확인하므로 저점 당일 확정할 수 없습니다."
+        ],
+        "research_only": true
+      }
+    ],
+    "QQQ": [
+      {
+        "kind": "Z파 저점",
+        "status": "관찰 구간",
+        "invalidated": false,
+        "confirmed": false,
+        "zone_low": 637.54761,
+        "zone_high": 697.04559,
+        "observed_low": 680.33002,
+        "observed_low_date": "2026-11-02",
+        "confirmed_asof": null,
+        "latest_price": 681.09003,
+        "invalidation": null,
+        "reevaluate": 614.81938,
+        "anchors": [
+          {
+            "label": "W 시작",
+            "date": "2026-06-22",
+            "price": 744.67402,
+            "position": 2418
+          },
+          {
+            "label": "W 저점",
+            "date": "2026-06-26",
+            "price": 702.07845,
+            "position": 2422
+          },
+          {
+            "label": "X1 반등",
+            "date": "2026-06-30",
+            "price": 736.85218,
+            "position": 2424
+          },
+          {
+            "label": "Y 저점",
+            "date": "2026-07-29",
+            "price": 660.45179,
+            "position": 2444
+          },
+          {
+            "label": "X2 반등",
+            "date": "2026-08-17",
+            "price": 733.81535,
+            "position": 2457
+          }
+        ],
+        "entry_trigger": 698.63,
+        "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
+        "reasons": [
+          "W-X-Y-X-Z 형태와 유사한 주요 스윙 골격. W/Y/Z 내부 ABC 확인 없이 진짜 삼중 지그재그로 확정 불가.",
+          "기준 저점 관측 680.33 (2026-11-02), 예상 구간 637.55~697.05",
+          "후행 확정 지점은 좌우 스윙 민감도만큼의 캔들이 지난 후 확인하므로 저점 당일 확정할 수 없습니다."
+        ],
+        "research_only": true
+      }
+    ]
   },
   "note": "기간 종료 전 성적을 미리 계산하지 않습니다. 매수 주문 또는 체결 결과가 아닌 종가 대비 참고 수익률입니다."
 }

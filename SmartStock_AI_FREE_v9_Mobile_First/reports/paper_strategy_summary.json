@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-03T02:27:03.160747+00:00",
+  "generated_utc": "2026-11-03T09:46:57.040119+00:00",
   "engine": "10.8-strategy-rules-v1",
   "paper_only": true,
   "total_logged": 0,
@@ -32,12 +32,7 @@
   "assessment": "최소 20건 미만: 성적 판단 유보",
   "limitations": "모의 단일 거래 사례의 단순 평균. 포트폴리오 수익률 아님; 시세 지연/수정/배당/분할/체결오차 주의",
   "new_candidates": 0,
-  "tracked_symbols": 5,
-  "errors": [
-    {
-      "symbol": "SPY",
-      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
-    }
-  ],
+  "tracked_symbols": 6,
+  "errors": [],
   "last_checked_day_utc": "2026-11-03"
 }
