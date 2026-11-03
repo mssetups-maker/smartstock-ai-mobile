@@ -25,7 +25,7 @@ from research import adaptive_signals, wave_candidates, free_explanation
 from elliott_waves import estimate_wave, attach_wave_traces, wave_sensitivity_agreement
 from wave_auto_recount import estimate_with_recount
 from analysis_decision import decide, render_streamlit_report
-from quality_guard import verify_and_rebuild, latest_signal, scenario_candidates, indicator_table
+from quality_guard import verify_and_rebuild, latest_signal, scenario_candidates, indicator_table, group_table, regime_diagnostic
 from stock_data_provider import fetch_stock_daily
 from historical_evidence import (fixed_rule_history, model_history_from_audit,
     evidence_context, RULE_VERSION, MODEL_VERSION, _bucket)
@@ -51,7 +51,7 @@ from v8_features import (reliability_calibration, classify_market, model_cost_st
     interval_coverage_audit, forecast_error_patterns)
 import os
 
-st.set_page_config(page_title='SmartStock AI 11.2 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
+st.set_page_config(page_title='SmartStock AI 11.3 | 모바일', page_icon='📈', layout='centered', initial_sidebar_state='collapsed')
 st.markdown("""<style>
 /* 모바일 우선: 크고 명확한 터치 대상, 불필요한 좌우 공간 제거 */
 .block-container{padding-top:.55rem;padding-bottom:5rem;max-width:780px}
@@ -333,7 +333,7 @@ def forecast_chart(paths,spot,horizon_days):
     return fig
 
 # ---- Mobile-first UI: no sidebar dependency ----
-st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">11.2</span>', unsafe_allow_html=True)
+st.markdown('## 📈 SmartStock AI <span style="color:#59a7fa">11.3</span>', unsafe_allow_html=True)
 st.caption('휴대폰용 분석 화면 · 매수/매도 자동 실행 없음')
 # GitHub Actions creates these reports only after workflows are registered in
 # the repository root and successfully execute. Never simulate a healthy run.
@@ -626,7 +626,8 @@ st.caption('상승점수는 실제 수익 확률이 아닙니다. 과거 검증 
 _valid_market=(health.status!='차단' and not is_demo and uploaded is None
                and indicator_quality['status']!='차단')
 _signal=latest_signal(df,volume_reliable=indicator_quality['volume_reliable'])
-_direction_candidates=scenario_candidates(_signal,res.probability) if _valid_market else []
+_direction_candidates=scenario_candidates(_signal,res.probability,df) if _valid_market else []
+_regime=regime_diagnostic(df)
 # Build only completed, non-overlapping, price-verified historical episodes.
 # Each event's regime and neutral volatility band use ONLY bars known at that event.
 _rule_records=(fixed_rule_history(raw,df,horizon_days,symbol) if _valid_market else [])
@@ -646,8 +647,13 @@ _decision_report=(_model_report if _model_report['probabilities'] is not None
                   else _rule_report)
 _usable_rule_count=_rule_report['sample_count']
 _usable_ml_count=_model_report['sample_count']
-with st.expander('🧭 11.2 AI 오류 재검증 · 최우선 시나리오',expanded=True):
+with st.expander('🧭 11.3 AI 교차 검증 · 근거별 최우선 시나리오',expanded=True):
     render_streamlit_report(_decision_report)
+    st.markdown('**현재 추세의 성격: '+_regime['label']+'**')
+    st.caption(_regime['reason'])
+    st.caption('평가 방식: 추세·모멘텀·수급을 각각 한 계열로 묶고 동일 비중으로 합의도를 계산합니다. '
+          'RSI·MFI·스토캐스틱·이동평균 간 상관관계가 완전히 제거되는 것은 아닙니다. '
+          '미보정 AI 방향점수는 중복 계산 방지를 위해 시나리오 순위에 추가 가중하지 않습니다.')
     st.caption('최신 지표별 판단: '+_signal['direction']+
                f' · 유효 투표 {_signal["available"]}개 · 방향 점수는 확률이 아님')
     st.caption(f'비중첩 과거 유사 국면 표본: 고정 지표 규칙 {_usable_rule_count}건 / '
@@ -668,6 +674,11 @@ with st.expander('🧭 11.2 AI 오류 재검증 · 최우선 시나리오',expan
         with st.expander('계산 불가·검증 유보한 지표'):
             for note in indicator_quality['skipped'][:15]:st.caption(note)
     with st.expander('🧪 보조지표별 실측 근거와 충돌',expanded=False):
+        st.markdown('**계열별 합의도 (예측 확률 아님)**')
+        st.dataframe(group_table(_signal),hide_index=True,use_container_width=True)
+        st.caption('각 계열 점수 = (상승 지표 수−하락 지표 수)/계열 내 유효 지표 수. '
+                   '그룹 간 동일 비중. 중립과 충돌 정보는 횡보·혼조 관찰 점수로 남깁니다.')
+        st.markdown('**실제 지표값 · 판정 기준 · 기준 날짜**')
         st.dataframe(indicator_table(_signal),hide_index=True,use_container_width=True)
         if _signal['conflicts']:
             st.warning(f'상반된 지표 {_signal["conflicts"]}개: 단일 방향 확정 금지')
@@ -1574,4 +1585,4 @@ if active_section=='quick':
     st.caption('프로그램 화면은 새로고침 시 분석하고, GitHub 예약 실행에서는 조건 변경 시 Telegram 메시지를 발송할 수 있습니다. 자동 알림 사용에는 개인 Bot Token과 Chat ID를 GitHub Secrets에 별도 등록해야 합니다.')
     st.info('자동 알림은 앱이 아닌 GitHub Actions의 정기 실행에 의존하므로 실시간 알림이 아니며, 설정하지 않으면 완전히 꺼져 있습니다.')
 
-st.caption('SmartStock AI FREE 11.2 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')
+st.caption('SmartStock AI FREE 11.3 모바일 · 무료 API 데이터 조회·기술적 머신러닝·옵션 스냅샷·가격 규칙 가중치 학습. 투자자문/주문 기능 없음.')

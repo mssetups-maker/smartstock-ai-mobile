@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from quality_guard import latest_signal
 
-RULE_VERSION='fixed-indicators-v11.2.1'
+RULE_VERSION='fixed-indicators-v11.3-grouped'
 MODEL_VERSION='strict-rf-v1'
 
 
@@ -80,7 +80,7 @@ def fixed_rule_history(raw:pd.DataFrame,indicators_df:pd.DataFrame,horizon:int,
         if not (math.isfinite(px0) and math.isfinite(px1) and px0>0):continue
         realized=px1/px0-1
         t=_iso_stamp(raw.index[i]);end=_iso_stamp(raw.index[i+horizon])
-        events.append({'event_id':f'{symbol}|{timeframe}|{horizon}|{t}|rule-v11.2',
+        events.append({'event_id':f'{symbol}|{timeframe}|{horizon}|{t}|rule-v11.3',
                        'symbol':symbol,'timeframe':timeframe,'horizon_bars':horizon,
                        'signal_bucket':'rule:'+signal['bucket'],
                        'model_version':RULE_VERSION,'prediction_time':t,

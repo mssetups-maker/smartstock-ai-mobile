@@ -221,31 +221,41 @@ def wave_candidates(wave: Mapping[str, Any]) -> list[dict]:
 
 
 def render_streamlit_report(report: Mapping[str, Any]) -> None:
-    """Galaxy-friendly panel; call within app.py after computing the report."""
+    """Galaxy-friendly, auditable candidate explanations and separate probabilities."""
     import streamlit as st
     st.subheader('🧭 AI 재검증 분석')
-    top = report.get('top')
+    top=report.get('top')
     if not top:
-        st.warning('유효한 후보를 찾지 못했습니다. 틀린 신호를 숨기고 다음 데이터 갱신에서 재분석합니다.')
-        st.caption('재탐색 범위: ' + ', '.join(report.get('searched', [])))
+        st.warning('현재 규칙과 데이터 품질을 통과한 후보가 없습니다. 번호나 방향을 만들어내지 않습니다.')
+        st.caption('재탐색 범위: '+', '.join(report.get('searched',[])))
         return
     st.markdown(f"**현재 1순위: {top['title']}**")
-    probs = report.get('probabilities')
+    probs=report.get('probabilities')
     if probs is not None and top.get('outcome'):
-        outcome = top['outcome']
-        interval = report['confidence_intervals'][outcome]
-        st.metric(f'{report.get("horizon_bars")}봉 내 {outcome} 빈도 기반 추정', f'{probs[outcome]*100:.1f}%')
-        st.caption(f'관찰 표본 {report["sample_count"]}건 · 95% 통계구간 {interval[0]*100:.1f}~{interval[1]*100:.1f}%')
-        st.caption('상승 / 하락 / 횡보: ' + ' · '.join(f'{name} {probs[name]*100:.1f}%' for name in OUTCOMES))
+        outcome=top['outcome']
+        interval=report['confidence_intervals'][outcome]
+        st.metric(f'{report.get("horizon_bars")}봉 후 {outcome} 과거 관찰 빈도',f'{probs[outcome]*100:.1f}%')
+        st.caption(f'동일 조건의 과거 검증표본 {report["sample_count"]}건 · 95% Wilson 구간 {interval[0]*100:.1f}~{interval[1]*100:.1f}%')
+        st.caption('과거 빈도: '+' · '.join(f'{name} {probs[name]*100:.1f}%' for name in OUTCOMES))
+        st.caption('이 수치는 실제 미래의 확정 확률이 아니며, 아래 규칙 일치도 점수와 다릅니다.')
     else:
-        st.caption('검증된 예측 확률 없음 · 1순위는 규칙 적합/모델 점수에 따른 임시 후보')
+        st.caption('검증된 숫자 확률 없음 · 표본 수와 95% 구간 폭 기준을 충족하지 못함')
     if top.get('rank_score') is not None:
-        st.caption(f'분석 순위 점수 {top["rank_score"]:.1f}/100 (확률 아님)')
-    if top.get('invalidation') is not None:
-        st.caption(f'시나리오 무효화 조건: {top["invalidation"]}')
-    with st.expander('대안 시나리오와 제외된 분석'):
-        for item in report.get('alternatives', []):
-            st.write(f"• {item['title']}")
-        for item in report.get('rejected', [])[:15]:
-            st.write(f"• 제외: {item['id']} — {item['reason']}")
-    st.caption(report.get('notice', ''))
+        st.metric('1순위 규칙 일치도 (확률 아님)',f'{top["rank_score"]:.1f}점')
+        st.caption('계열별 합의도 분배 점수입니다. 세 시나리오 점수의 합이 100이어도 발생확률이 아닙니다.')
+    if top.get('invalidation'):
+        st.info('**1순위 재검토 가격 기준**: '+str(top['invalidation']))
+    with st.expander('📊 1순위 점수 계산과 실측 근거',expanded=False):
+        for e in top.get('evidence',[]):st.caption('• '+e)
+        if not top.get('evidence'):st.caption('독립적으로 표시할 수 있는 상세 지표 근거가 없습니다.')
+    with st.expander('대안 시나리오와 제외된 분석',expanded=False):
+        for item in report.get('alternatives',[]):
+            st.markdown(f"**{item['title']}**")
+            if item.get('rank_score') is not None:
+                st.caption(f'규칙 일치도 {item["rank_score"]:.1f}점 (예측 확률 아님)')
+            if item.get('invalidation'):
+                st.caption('재검토 기준: '+str(item['invalidation']))
+            for e in item.get('evidence',[])[:6]:st.caption('• '+e)
+        for item in report.get('rejected',[])[:15]:
+            st.caption(f"• 제외: {item['id']} — {item['reason']}")
+    st.caption(report.get('notice',''))
