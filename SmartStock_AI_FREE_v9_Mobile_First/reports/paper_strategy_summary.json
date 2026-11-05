@@ -1,9 +1,9 @@
 {
-  "generated_utc": "2026-11-04T02:26:14.179187+00:00",
+  "generated_utc": "2026-11-05T02:34:39.892586+00:00",
   "engine": "10.8-strategy-rules-v1",
   "paper_only": true,
-  "total_logged": 0,
-  "pending": 0,
+  "total_logged": 4,
+  "pending": 4,
   "settled": 0,
   "invalidated": 0,
   "win_rate_pct": null,
@@ -27,12 +27,25 @@
       "average_net_pct": null
     }
   },
-  "by_symbol": {},
+  "by_symbol": {
+    "AAPL": {
+      "settled": 0,
+      "pending": 2,
+      "average_net_pct": null,
+      "positive_rate_pct": null
+    },
+    "MSFT": {
+      "settled": 0,
+      "pending": 2,
+      "average_net_pct": null,
+      "positive_rate_pct": null
+    }
+  },
   "drift_warning": null,
   "assessment": "최소 20건 미만: 성적 판단 유보",
   "limitations": "모의 단일 거래 사례의 단순 평균. 포트폴리오 수익률 아님; 시세 지연/수정/배당/분할/체결오차 주의",
-  "new_candidates": 0,
+  "new_candidates": 4,
   "tracked_symbols": 6,
   "errors": [],
-  "last_checked_day_utc": "2026-11-04"
+  "last_checked_day_utc": "2026-11-05"
 }

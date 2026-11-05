@@ -1,9 +1,9 @@
 {
   "engine": "10.8-RF-prospective-v1",
-  "last_checked_day_utc": "2026-11-04",
+  "last_checked_day_utc": "2026-11-05",
   "paper_only": true,
-  "total_logged": 36,
-  "pending": 36,
+  "total_logged": 48,
+  "pending": 48,
   "invalidated": 0,
   "settled": 0,
   "by_horizon": {
