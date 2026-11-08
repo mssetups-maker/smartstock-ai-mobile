@@ -1,8 +1,8 @@
 {
   "version": "11.2.0",
-  "timestamp_utc": "2026-11-07T02:26:44.440905+00:00",
-  "status": "partial",
-  "stock_crypto_experiments": 15,
+  "timestamp_utc": "2026-11-08T02:30:12.468515+00:00",
+  "status": "ok",
+  "stock_crypto_experiments": 18,
   "stock_sources": {
     "TSLA": {
       "provider": "Yahoo adjusted daily",
@@ -13,6 +13,11 @@
       "provider": "Yahoo adjusted daily",
       "last_completed_bar": "2026-11-06 00:00:00",
       "rows": 2514
+    },
+    "CRWV": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-06 00:00:00",
+      "rows": 406
     },
     "AAPL": {
       "provider": "Yahoo adjusted daily",
@@ -30,7 +35,7 @@
       "rows": 2514
     }
   },
-  "stock_symbols_analyzed": 5,
+  "stock_symbols_analyzed": 6,
   "crypto_symbols_analyzed": 3,
   "paper_strategy_status": "ok",
   "opportunity_diagnostic_status": "ok",
@@ -39,13 +44,8 @@
   "opportunity_near_miss_symbols": 3,
   "ml_forward_status": "ok",
   "pattern_research_status": "ok",
-  "failed_subsystems": [
-    {
-      "source": "CRWV",
-      "error": "CRWV: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 "
-    }
-  ],
-  "failure_count": 1,
+  "failed_subsystems": [],
+  "failure_count": 0,
   "model_auto_deployed": false,
   "note": "프로세스 완료는 예측 성능 향상이나 검증된 매수 신호를 뜻하지 않습니다."
 }

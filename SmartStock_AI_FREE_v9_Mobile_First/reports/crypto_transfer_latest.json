@@ -1,26 +1,26 @@
 {
-  "timestamp_utc": "2026-11-07T02:26:44.440905+00:00",
+  "timestamp_utc": "2026-11-08T02:30:12.468515+00:00",
   "mode": "일일 주식·코인 전이학습: 5/21/63거래일, 독립 검증",
-  "status": "partial",
+  "status": "ok",
   "integrated_into_live_stock_predictions": false,
   "why": "연구 결과만 저장하며, 독립 검증과 실제 미래 성과가 확인되기 전에는 실거래 모델을 교체하지 않습니다.",
   "crypto_coverage": {
     "KRW-BTC": {
-      "rows": 3330,
+      "rows": 3331,
       "first": "2017-09-25T00:00:00",
-      "last": "2026-11-06T00:00:00",
+      "last": "2026-11-07T00:00:00",
       "deep_backfill": false
     },
     "KRW-ETH": {
-      "rows": 3327,
+      "rows": 3328,
       "first": "2017-09-25T00:00:00",
-      "last": "2026-11-06T00:00:00",
+      "last": "2026-11-07T00:00:00",
       "deep_backfill": false
     },
     "KRW-SOL": {
-      "rows": 1849,
+      "rows": 1850,
       "first": "2021-10-15T00:00:00",
-      "last": "2026-11-06T00:00:00",
+      "last": "2026-11-07T00:00:00",
       "deep_backfill": false
     }
   },
@@ -34,6 +34,11 @@
       "provider": "Yahoo adjusted daily",
       "last_completed_bar": "2026-11-06 00:00:00",
       "rows": 2514
+    },
+    "CRWV": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-06 00:00:00",
+      "rows": 406
     },
     "AAPL": {
       "provider": "Yahoo adjusted daily",
@@ -57,29 +62,29 @@
       "stocks": {
         "clusters": 32,
         "validated_candidates": 0,
-        "holdout_cases": 2865
+        "holdout_cases": 3137
       },
       "crypto_daily": {
         "clusters": 29,
         "validated_candidates": 0,
-        "holdout_cases": 1602
+        "holdout_cases": 1542
       },
       "crypto_5min": {
-        "clusters": 15,
-        "validated_candidates": 2,
-        "holdout_cases": 643
+        "clusters": 16,
+        "validated_candidates": 0,
+        "holdout_cases": 679
       }
     },
     "errors": [],
     "forward_outcomes": {
-      "pending": 101,
-      "resolved": 7,
-      "evaluated_correct": 5,
+      "pending": 105,
+      "resolved": 11,
+      "evaluated_correct": 7,
       "note": "예측 당시 관측 기록만 이후 가격이 확정되면 채점; 검증되지 않은 연구 후보"
     }
   },
   "paper_strategy_audit": {
-    "generated_utc": "2026-11-07T02:26:44.440905+00:00",
+    "generated_utc": "2026-11-08T02:30:12.468515+00:00",
     "engine": "10.8-strategy-rules-v1",
     "paper_only": true,
     "total_logged": 4,
@@ -128,44 +133,44 @@
     "assessment": "최소 20건 미만: 성적 판단 유보",
     "limitations": "모의 단일 거래 사례의 단순 평균. 포트폴리오 수익률 아님; 시세 지연/수정/배당/분할/체결오차 주의",
     "new_candidates": 0,
-    "tracked_symbols": 5,
+    "tracked_symbols": 6,
     "errors": [],
-    "last_checked_day_utc": "2026-11-07",
+    "last_checked_day_utc": "2026-11-08",
     "status": "ok"
   },
   "opportunity_funnel": {
     "version": "10.10-opportunity-funnel-1",
-    "timestamp_utc": "2026-11-07T02:26:44.440905+00:00",
+    "timestamp_utc": "2026-11-08T02:30:12.468515+00:00",
     "status": "ok",
-    "covered_symbols": 5,
+    "covered_symbols": 6,
     "signal_symbols": 0,
     "near_miss_symbols": 3,
-    "inactive_symbols": 5,
+    "inactive_symbols": 6,
     "errors": [],
     "paper_only": true,
     "warning": "후보가 많아지는 것 자체는 정확도 향상이 아닙니다. 규칙 진입 및 보유 기간별 실전 이후 성적을 따로 검증해야 합니다."
   },
   "forward_ml_audit": {
     "engine": "10.8-RF-prospective-v1",
-    "last_checked_day_utc": "2026-11-07",
+    "last_checked_day_utc": "2026-11-08",
     "paper_only": true,
-    "total_logged": 70,
-    "pending": 66,
+    "total_logged": 72,
+    "pending": 67,
     "invalidated": 0,
-    "settled": 4,
+    "settled": 5,
     "by_horizon": {
       "5": {
-        "n": 4,
+        "n": 5,
         "distinct_signal_dates": 1,
         "nonoverlap_proxy": 1,
-        "observed_up_rate_pct": 25.0,
-        "always_up_accuracy_pct": 25.0,
-        "average_score_minus_observed_up_pct": 27.87,
-        "brier_improvement_over_fixed_half": -0.06045,
-        "accuracy_pct": 25.0,
-        "brier": 0.3104,
+        "observed_up_rate_pct": 20.0,
+        "always_up_accuracy_pct": 20.0,
+        "average_score_minus_observed_up_pct": 38.84,
+        "brier_improvement_over_fixed_half": -0.1351,
+        "accuracy_pct": 20.0,
+        "brier": 0.3851,
         "baseline_0_5_brier": 0.25,
-        "avg_predicted_score": 0.5287
+        "avg_predicted_score": 0.5884
       },
       "21": {
         "n": 0,
@@ -196,17 +201,17 @@
         "avg_predicted_score": 0.5638
       },
       "CRWV": {
-        "n": 0,
-        "distinct_signal_dates": 0,
-        "nonoverlap_proxy": 0,
-        "observed_up_rate_pct": null,
-        "always_up_accuracy_pct": null,
-        "average_score_minus_observed_up_pct": null,
-        "brier_improvement_over_fixed_half": null,
-        "accuracy_pct": null,
-        "brier": null,
-        "baseline_0_5_brier": null,
-        "avg_predicted_score": null
+        "n": 1,
+        "distinct_signal_dates": 1,
+        "nonoverlap_proxy": 1,
+        "observed_up_rate_pct": 0.0,
+        "always_up_accuracy_pct": 0.0,
+        "average_score_minus_observed_up_pct": 82.69,
+        "brier_improvement_over_fixed_half": -0.43374,
+        "accuracy_pct": 0.0,
+        "brier": 0.6837,
+        "baseline_0_5_brier": 0.25,
+        "avg_predicted_score": 0.8269
       },
       "MSFT": {
         "n": 1,
@@ -276,20 +281,20 @@
     },
     "reliability": "20건 이상 완료된 동일 기간을 우선 평가. nonoverlap_proxy는 겹침 보정의 참고값일 뿐 종목 간 독립성을 증명하지 않습니다.",
     "note": "모델 점수는 보정된 상승확률이 아닙니다. 검증 파일은 자동 모델 채택에 사용하지 않습니다.",
-    "new_snapshots": 10,
-    "tracked_symbols": 5,
+    "new_snapshots": 2,
+    "tracked_symbols": 6,
     "errors": [],
     "status": "ok"
   },
   "wave_bottom_audit": {
-    "timestamp_utc": "2026-11-07T02:26:44.440905+00:00",
+    "timestamp_utc": "2026-11-08T02:30:12.468515+00:00",
     "status": "ok",
-    "new_candidates": 3,
+    "new_candidates": 0,
     "current_candidates": 3,
-    "tracked_symbols": 5,
+    "tracked_symbols": 6,
     "total_logged": 23,
     "newly_evaluated_horizons": 2,
-    "evaluated_5": 2,
+    "evaluated_5": 4,
     "evaluated_21": 0,
     "errors": [],
     "note": "기간 종료 전 성적을 미리 계산하지 않습니다. 매수 주문 또는 체결 결과가 아닌 종가 대비 참고 수익률입니다."
@@ -322,33 +327,40 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1819,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1816,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 338,
           "eligible": 338,
           "last_eligible": "2023-01-14T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2901,
-      "stock_crypto_dev_brier": 0.2742,
-      "stock_holdout_brier": 0.2533,
-      "stock_crypto_holdout_brier": 0.2489,
-      "stock_holdout_accuracy": 0.5433,
-      "stock_crypto_holdout_accuracy": 0.5386,
+      "stock_dev_brier": 0.2894,
+      "stock_crypto_dev_brier": 0.2736,
+      "stock_holdout_brier": 0.2544,
+      "stock_crypto_holdout_brier": 0.2486,
+      "stock_holdout_accuracy": 0.5457,
+      "stock_crypto_holdout_accuracy": 0.5457,
       "symbol": "AAPL"
+    },
+    {
+      "horizon_days": 21,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "주식의 유효 학습 사례 266개: 전이학습 비교에 필요한 시계열이 부족합니다.",
+      "symbol": "CRWV"
     },
     {
       "horizon_days": 21,
@@ -372,32 +384,32 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1819,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1816,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 338,
           "eligible": 338,
           "last_eligible": "2023-01-14T00:00:00"
         }
       },
       "stock_dev_brier": 0.2673,
-      "stock_crypto_dev_brier": 0.2726,
+      "stock_crypto_dev_brier": 0.2725,
       "stock_holdout_brier": 0.2745,
       "stock_crypto_holdout_brier": 0.2664,
       "stock_holdout_accuracy": 0.534,
-      "stock_crypto_holdout_accuracy": 0.5363,
+      "stock_crypto_holdout_accuracy": 0.5316,
       "symbol": "MSFT"
     },
     {
@@ -422,21 +434,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1819,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1816,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 338,
           "eligible": 338,
           "last_eligible": "2023-01-14T00:00:00"
@@ -472,21 +484,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1819,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1816,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 338,
           "eligible": 338,
           "last_eligible": "2023-01-14T00:00:00"
@@ -522,21 +534,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1819,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1816,
           "eligible": 1478,
           "last_eligible": "2023-01-14T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 338,
           "eligible": 338,
           "last_eligible": "2023-01-14T00:00:00"
@@ -572,32 +584,32 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1922,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1919,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 441,
           "eligible": 441,
           "last_eligible": "2023-04-27T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2589,
-      "stock_crypto_dev_brier": 0.2575,
-      "stock_holdout_brier": 0.2583,
-      "stock_crypto_holdout_brier": 0.2533,
-      "stock_holdout_accuracy": 0.4953,
-      "stock_crypto_holdout_accuracy": 0.514,
+      "stock_dev_brier": 0.2594,
+      "stock_crypto_dev_brier": 0.2568,
+      "stock_holdout_brier": 0.2566,
+      "stock_crypto_holdout_brier": 0.2536,
+      "stock_holdout_accuracy": 0.5047,
+      "stock_crypto_holdout_accuracy": 0.5047,
       "symbol": "AAPL"
     },
     {
@@ -622,33 +634,47 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1540,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1537,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 59,
           "eligible": 59,
           "last_eligible": "2022-04-10T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2558,
-      "stock_crypto_dev_brier": 0.2768,
-      "stock_holdout_brier": 0.2808,
-      "stock_crypto_holdout_brier": 0.279,
+      "stock_dev_brier": 0.2552,
+      "stock_crypto_dev_brier": 0.2776,
+      "stock_holdout_brier": 0.2806,
+      "stock_crypto_holdout_brier": 0.2793,
       "stock_holdout_accuracy": 0.4678,
       "stock_crypto_holdout_accuracy": 0.4415,
       "symbol": "AAPL"
+    },
+    {
+      "horizon_days": 5,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "주식의 유효 학습 사례 282개: 전이학습 비교에 필요한 시계열이 부족합니다.",
+      "symbol": "CRWV"
+    },
+    {
+      "horizon_days": 63,
+      "status": "검증 부족 — 기존 주식 모델 유지",
+      "adopted": false,
+      "reason": "주식의 유효 학습 사례 224개: 전이학습 비교에 필요한 시계열이 부족합니다.",
+      "symbol": "CRWV"
     },
     {
       "horizon_days": 5,
@@ -672,21 +698,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1922,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1919,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 441,
           "eligible": 441,
           "last_eligible": "2023-04-27T00:00:00"
@@ -722,21 +748,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1540,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1537,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 59,
           "eligible": 59,
           "last_eligible": "2022-04-10T00:00:00"
@@ -772,21 +798,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1922,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1919,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 441,
           "eligible": 441,
           "last_eligible": "2023-04-27T00:00:00"
@@ -794,9 +820,9 @@
       },
       "stock_dev_brier": 0.2489,
       "stock_crypto_dev_brier": 0.2517,
-      "stock_holdout_brier": 0.2605,
+      "stock_holdout_brier": 0.2603,
       "stock_crypto_holdout_brier": 0.2575,
-      "stock_holdout_accuracy": 0.4953,
+      "stock_holdout_accuracy": 0.4907,
       "stock_crypto_holdout_accuracy": 0.5,
       "symbol": "NVDA"
     },
@@ -822,32 +848,32 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1540,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1537,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 59,
           "eligible": 59,
           "last_eligible": "2022-04-10T00:00:00"
         }
       },
       "stock_dev_brier": 0.2311,
-      "stock_crypto_dev_brier": 0.2017,
+      "stock_crypto_dev_brier": 0.2016,
       "stock_holdout_brier": 0.2644,
-      "stock_crypto_holdout_brier": 0.2691,
+      "stock_crypto_holdout_brier": 0.2693,
       "stock_holdout_accuracy": 0.5465,
-      "stock_crypto_holdout_accuracy": 0.5489,
+      "stock_crypto_holdout_accuracy": 0.5442,
       "symbol": "NVDA"
     },
     {
@@ -872,21 +898,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1922,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1919,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 441,
           "eligible": 441,
           "last_eligible": "2023-04-27T00:00:00"
@@ -922,30 +948,30 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1540,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1537,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 59,
           "eligible": 59,
           "last_eligible": "2022-04-10T00:00:00"
         }
       },
-      "stock_dev_brier": 0.2098,
-      "stock_crypto_dev_brier": 0.1811,
+      "stock_dev_brier": 0.2099,
+      "stock_crypto_dev_brier": 0.1812,
       "stock_holdout_brier": 0.2643,
-      "stock_crypto_holdout_brier": 0.2895,
+      "stock_crypto_holdout_brier": 0.2896,
       "stock_holdout_accuracy": 0.5513,
       "stock_crypto_holdout_accuracy": 0.5585,
       "symbol": "QQQ"
@@ -972,21 +998,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1922,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1919,
           "eligible": 1520,
           "last_eligible": "2023-04-27T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 441,
           "eligible": 441,
           "last_eligible": "2023-04-27T00:00:00"
@@ -1022,21 +1048,21 @@
       "crypto_diagnostics": {
         "KRW-BTC": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1540,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-ETH": {
           "observed_start": "2017-09-25T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 1537,
           "eligible": 1368,
           "last_eligible": "2022-04-10T00:00:00"
         },
         "KRW-SOL": {
           "observed_start": "2021-10-15T00:00:00",
-          "observed_end": "2026-11-06T00:00:00",
+          "observed_end": "2026-11-07T00:00:00",
           "eligible_before_downsample": 59,
           "eligible": 59,
           "last_eligible": "2022-04-10T00:00:00"
@@ -1051,10 +1077,5 @@
       "symbol": "TSLA"
     }
   ],
-  "errors": [
-    {
-      "source": "CRWV",
-      "error": "CRWV: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 "
-    }
-  ]
+  "errors": []
 }

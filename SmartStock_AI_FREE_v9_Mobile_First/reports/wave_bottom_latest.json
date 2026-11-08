@@ -1,17 +1,18 @@
 {
-  "timestamp_utc": "2026-11-07T02:26:44.440905+00:00",
+  "timestamp_utc": "2026-11-08T02:30:12.468515+00:00",
   "status": "ok",
-  "new_candidates": 3,
+  "new_candidates": 0,
   "current_candidates": 3,
-  "tracked_symbols": 5,
+  "tracked_symbols": 6,
   "total_logged": 23,
   "newly_evaluated_horizons": 2,
-  "evaluated_5": 2,
+  "evaluated_5": 4,
   "evaluated_21": 0,
   "errors": [],
   "by_symbol": {
     "TSLA": [],
     "NVDA": [],
+    "CRWV": [],
     "AAPL": [
       {
         "kind": "2파 저점",
