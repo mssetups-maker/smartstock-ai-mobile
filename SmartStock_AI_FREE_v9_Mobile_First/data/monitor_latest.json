@@ -1,35 +1,7 @@
 {
-  "timestamp_utc": "2026-11-08T16:47:30.238547+00:00",
+  "timestamp_utc": "2026-11-08T17:45:07.277576+00:00",
   "mode": "15분 예약 감시 (실시간 아님)",
-  "cryptocurrency": [
-    {
-      "market": "KRW-BTC",
-      "close": 103709000.0,
-      "last_candle_utc": "2026-11-08T16:40:00",
-      "last_1h_return_pct": -0.112,
-      "sample_count": 28,
-      "saved_5min_rows": 6923,
-      "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
-    },
-    {
-      "market": "KRW-ETH",
-      "close": 3054000.0,
-      "last_candle_utc": "2026-11-08T16:40:00",
-      "last_1h_return_pct": -0.196,
-      "sample_count": 28,
-      "saved_5min_rows": 6923,
-      "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
-    },
-    {
-      "market": "KRW-SOL",
-      "close": 122000.0,
-      "last_candle_utc": "2026-11-08T16:40:00",
-      "last_1h_return_pct": -0.245,
-      "sample_count": 28,
-      "saved_5min_rows": 6921,
-      "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
-    }
-  ],
+  "cryptocurrency": [],
   "stocks": [
     {
       "symbol": "TSLA",
@@ -68,7 +40,20 @@
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     }
   ],
-  "failures": [],
-  "status": "ok",
-  "last_successful_observations": 9
+  "failures": [
+    {
+      "source": "KRW-BTC",
+      "error": "HTTPSConnectionPool(host='api.upbit.com', port=443): Max retries exceeded with url: /v1/candles/minutes/5?market=KRW-BTC&count=180 (Caused by ConnectTimeoutError(<HTTPSConnection(h"
+    },
+    {
+      "source": "KRW-ETH",
+      "error": "HTTPSConnectionPool(host='api.upbit.com', port=443): Max retries exceeded with url: /v1/candles/minutes/5?market=KRW-ETH&count=180 (Caused by ConnectTimeoutError(<HTTPSConnection(h"
+    },
+    {
+      "source": "KRW-SOL",
+      "error": "HTTPSConnectionPool(host='api.upbit.com', port=443): Max retries exceeded with url: /v1/candles/minutes/5?market=KRW-SOL&count=180 (Caused by ConnectTimeoutError(<HTTPSConnection(h"
+    }
+  ],
+  "status": "partial",
+  "last_successful_observations": 6
 }
