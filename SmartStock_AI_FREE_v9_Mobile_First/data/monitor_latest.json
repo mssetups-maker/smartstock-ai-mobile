@@ -1,7 +1,26 @@
 {
-  "timestamp_utc": "2026-11-08T18:53:29.590707+00:00",
+  "timestamp_utc": "2026-11-08T19:52:03.070763+00:00",
   "mode": "15분 예약 감시 (실시간 아님)",
-  "cryptocurrency": [],
+  "cryptocurrency": [
+    {
+      "market": "KRW-ETH",
+      "close": 3045000.0,
+      "last_candle_utc": "2026-11-08T17:00:00",
+      "last_1h_return_pct": -0.555,
+      "sample_count": 28,
+      "saved_5min_rows": 6927,
+      "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
+    },
+    {
+      "market": "KRW-SOL",
+      "close": 121600.0,
+      "last_candle_utc": "2026-11-08T17:00:00",
+      "last_1h_return_pct": -0.735,
+      "sample_count": 28,
+      "saved_5min_rows": 6925,
+      "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
+    }
+  ],
   "stocks": [
     {
       "symbol": "TSLA",
@@ -44,16 +63,8 @@
     {
       "source": "KRW-BTC",
       "error": "HTTPSConnectionPool(host='api.upbit.com', port=443): Max retries exceeded with url: /v1/candles/minutes/5?market=KRW-BTC&count=180 (Caused by ConnectTimeoutError(<HTTPSConnection(h"
-    },
-    {
-      "source": "KRW-ETH",
-      "error": "HTTPSConnectionPool(host='api.upbit.com', port=443): Max retries exceeded with url: /v1/candles/minutes/5?market=KRW-ETH&count=180 (Caused by ConnectTimeoutError(<HTTPSConnection(h"
-    },
-    {
-      "source": "KRW-SOL",
-      "error": "HTTPSConnectionPool(host='api.upbit.com', port=443): Max retries exceeded with url: /v1/candles/minutes/5?market=KRW-SOL&count=180 (Caused by ConnectTimeoutError(<HTTPSConnection(h"
     }
   ],
   "status": "partial",
-  "last_successful_observations": 6
+  "last_successful_observations": 8
 }
