@@ -1,11 +1,11 @@
 {
-  "timestamp_utc": "2026-11-08T02:30:12.468515+00:00",
+  "timestamp_utc": "2026-11-09T02:34:28.045966+00:00",
   "status": "ok",
   "new_candidates": 0,
   "current_candidates": 3,
   "tracked_symbols": 6,
   "total_logged": 23,
-  "newly_evaluated_horizons": 2,
+  "newly_evaluated_horizons": 0,
   "evaluated_5": 4,
   "evaluated_21": 0,
   "errors": [],
