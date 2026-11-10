@@ -1,6 +1,6 @@
 {
   "engine": "10.8-RF-prospective-v1",
-  "last_checked_day_utc": "2026-11-09",
+  "last_checked_day_utc": "2026-11-10",
   "paper_only": true,
   "total_logged": 72,
   "pending": 67,
@@ -130,6 +130,6 @@
   "reliability": "20건 이상 완료된 동일 기간을 우선 평가. nonoverlap_proxy는 겹침 보정의 참고값일 뿐 종목 간 독립성을 증명하지 않습니다.",
   "note": "모델 점수는 보정된 상승확률이 아닙니다. 검증 파일은 자동 모델 채택에 사용하지 않습니다.",
   "new_snapshots": 0,
-  "tracked_symbols": 6,
+  "tracked_symbols": 0,
   "errors": []
 }
