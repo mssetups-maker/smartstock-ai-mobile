@@ -1,10 +1,10 @@
 {
   "check_version": "11.2.0",
-  "timestamp_utc": "2026-11-11T11:08:58.232561+00:00",
+  "timestamp_utc": "2026-11-11T12:03:11.600052+00:00",
   "installation_status": "ok",
   "last_run_status": "partial",
   "last_run_version": "11.2.0",
-  "health_age_hours": 8.69,
+  "health_age_hours": 9.59,
   "status": "partial",
   "errors": [],
   "local_missing": [],
