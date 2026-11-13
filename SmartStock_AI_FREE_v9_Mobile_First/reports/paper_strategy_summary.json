@@ -1,5 +1,5 @@
 {
-  "generated_utc": "2026-11-12T02:31:35.794076+00:00",
+  "generated_utc": "2026-11-13T02:28:02.430853+00:00",
   "engine": "10.8-strategy-rules-v1",
   "paper_only": true,
   "total_logged": 6,
@@ -56,5 +56,5 @@
   "new_candidates": 0,
   "tracked_symbols": 0,
   "errors": [],
-  "last_checked_day_utc": "2026-11-12"
+  "last_checked_day_utc": "2026-11-13"
 }

@@ -1,26 +1,26 @@
 {
-  "timestamp_utc": "2026-11-12T02:31:35.794076+00:00",
+  "timestamp_utc": "2026-11-13T02:28:02.430853+00:00",
   "mode": "일일 주식·코인 전이학습: 5/21/63거래일, 독립 검증",
   "status": "failed",
   "integrated_into_live_stock_predictions": false,
   "why": "연구 결과만 저장하며, 독립 검증과 실제 미래 성과가 확인되기 전에는 실거래 모델을 교체하지 않습니다.",
   "crypto_coverage": {
     "KRW-BTC": {
-      "rows": 3335,
+      "rows": 3336,
       "first": "2017-09-25T00:00:00",
-      "last": "2026-11-11T00:00:00",
+      "last": "2026-11-12T00:00:00",
       "deep_backfill": false
     },
     "KRW-ETH": {
-      "rows": 3332,
+      "rows": 3333,
       "first": "2017-09-25T00:00:00",
-      "last": "2026-11-11T00:00:00",
+      "last": "2026-11-12T00:00:00",
       "deep_backfill": false
     },
     "KRW-SOL": {
-      "rows": 1854,
+      "rows": 1855,
       "first": "2021-10-15T00:00:00",
-      "last": "2026-11-11T00:00:00",
+      "last": "2026-11-12T00:00:00",
       "deep_backfill": false
     }
   },
@@ -34,26 +34,26 @@
         "holdout_cases": 0
       },
       "crypto_daily": {
-        "clusters": 31,
+        "clusters": 29,
         "validated_candidates": 0,
-        "holdout_cases": 1630
+        "holdout_cases": 1595
       },
       "crypto_5min": {
-        "clusters": 14,
+        "clusters": 15,
         "validated_candidates": 0,
-        "holdout_cases": 638
+        "holdout_cases": 694
       }
     },
     "errors": [],
     "forward_outcomes": {
-      "pending": 116,
-      "resolved": 33,
+      "pending": 119,
+      "resolved": 36,
       "evaluated_correct": 18,
       "note": "예측 당시 관측 기록만 이후 가격이 확정되면 채점; 검증되지 않은 연구 후보"
     }
   },
   "paper_strategy_audit": {
-    "generated_utc": "2026-11-12T02:31:35.794076+00:00",
+    "generated_utc": "2026-11-13T02:28:02.430853+00:00",
     "engine": "10.8-strategy-rules-v1",
     "paper_only": true,
     "total_logged": 6,
@@ -110,12 +110,12 @@
     "new_candidates": 0,
     "tracked_symbols": 0,
     "errors": [],
-    "last_checked_day_utc": "2026-11-12",
+    "last_checked_day_utc": "2026-11-13",
     "status": "ok"
   },
   "opportunity_funnel": {
     "version": "10.10-opportunity-funnel-1",
-    "timestamp_utc": "2026-11-12T02:31:35.794076+00:00",
+    "timestamp_utc": "2026-11-13T02:28:02.430853+00:00",
     "status": "failed",
     "covered_symbols": 0,
     "signal_symbols": 0,
@@ -127,7 +127,7 @@
   },
   "forward_ml_audit": {
     "engine": "10.8-RF-prospective-v1",
-    "last_checked_day_utc": "2026-11-12",
+    "last_checked_day_utc": "2026-11-13",
     "paper_only": true,
     "total_logged": 82,
     "pending": 67,
@@ -262,7 +262,7 @@
     "status": "ok"
   },
   "wave_bottom_audit": {
-    "timestamp_utc": "2026-11-12T02:31:35.794076+00:00",
+    "timestamp_utc": "2026-11-13T02:28:02.430853+00:00",
     "status": "ok",
     "new_candidates": 0,
     "current_candidates": 0,
