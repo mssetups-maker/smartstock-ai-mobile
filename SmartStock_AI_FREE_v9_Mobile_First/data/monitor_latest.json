@@ -1,70 +1,70 @@
 {
-  "timestamp_utc": "2026-11-13T20:02:01.393526+00:00",
+  "timestamp_utc": "2026-11-13T21:55:18.709233+00:00",
   "mode": "15분 예약 감시 (실시간 아님)",
   "cryptocurrency": [
     {
       "market": "KRW-BTC",
-      "close": 94000000.0,
-      "last_candle_utc": "2026-11-13T19:55:00",
-      "last_1h_return_pct": 0.062,
+      "close": 93312000.0,
+      "last_candle_utc": "2026-11-13T21:50:00",
+      "last_1h_return_pct": -0.622,
       "sample_count": 28,
-      "saved_5min_rows": 8342,
+      "saved_5min_rows": 8365,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     },
     {
       "market": "KRW-ETH",
-      "close": 2660000.0,
-      "last_candle_utc": "2026-11-13T19:55:00",
-      "last_1h_return_pct": 0.415,
+      "close": 2631000.0,
+      "last_candle_utc": "2026-11-13T21:50:00",
+      "last_1h_return_pct": -0.829,
       "sample_count": 28,
-      "saved_5min_rows": 8343,
+      "saved_5min_rows": 8366,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     },
     {
       "market": "KRW-SOL",
-      "close": 109100.0,
-      "last_candle_utc": "2026-11-13T19:55:00",
-      "last_1h_return_pct": 0.0,
+      "close": 107400.0,
+      "last_candle_utc": "2026-11-13T21:50:00",
+      "last_1h_return_pct": -1.558,
       "sample_count": 28,
-      "saved_5min_rows": 8341,
+      "saved_5min_rows": 8364,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     }
   ],
   "stocks": [
     {
       "symbol": "TSLA",
-      "last_observed_bar": "2026-11-13T14:30:00",
-      "close": 391.395,
+      "last_observed_bar": "2026-11-13T15:30:00",
+      "close": 390.1401,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     },
     {
       "symbol": "NVDA",
-      "last_observed_bar": "2026-11-13T14:30:00",
-      "close": 162.71,
+      "last_observed_bar": "2026-11-13T15:30:00",
+      "close": 162.8201,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     },
     {
       "symbol": "CRWV",
-      "last_observed_bar": "2026-11-13T14:30:00",
-      "close": 53.11,
+      "last_observed_bar": "2026-11-13T15:30:00",
+      "close": 53.1099,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     },
     {
       "symbol": "AAPL",
-      "last_observed_bar": "2026-11-13T14:30:00",
-      "close": 356.9582,
+      "last_observed_bar": "2026-11-13T15:30:00",
+      "close": 356.4,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     },
     {
       "symbol": "MSFT",
-      "last_observed_bar": "2026-11-13T14:30:00",
-      "close": 524.875,
+      "last_observed_bar": "2026-11-13T15:30:00",
+      "close": 524.31,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     },
     {
       "symbol": "QQQ",
-      "last_observed_bar": "2026-11-13T14:30:00",
-      "close": 679.105,
+      "last_observed_bar": "2026-11-13T15:30:00",
+      "close": 679.9,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     }
   ],
