@@ -1,17 +1,18 @@
 {
-  "timestamp_utc": "2026-11-14T02:28:10.472381+00:00",
+  "timestamp_utc": "2026-11-15T02:31:28.251173+00:00",
   "status": "ok",
-  "new_candidates": 2,
+  "new_candidates": 0,
   "current_candidates": 2,
-  "tracked_symbols": 5,
+  "tracked_symbols": 6,
   "total_logged": 27,
-  "newly_evaluated_horizons": 7,
-  "evaluated_5": 17,
+  "newly_evaluated_horizons": 6,
+  "evaluated_5": 23,
   "evaluated_21": 0,
   "errors": [],
   "by_symbol": {
     "TSLA": [],
     "NVDA": [],
+    "CRWV": [],
     "AAPL": [],
     "MSFT": [
       {
