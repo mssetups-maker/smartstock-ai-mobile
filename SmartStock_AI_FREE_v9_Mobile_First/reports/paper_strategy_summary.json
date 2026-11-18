@@ -1,18 +1,18 @@
 {
-  "generated_utc": "2026-11-17T02:34:54.456523+00:00",
+  "generated_utc": "2026-11-18T02:36:37.967478+00:00",
   "engine": "10.8-strategy-rules-v1",
   "paper_only": true,
   "total_logged": 8,
-  "pending": 5,
-  "settled": 3,
+  "pending": 2,
+  "settled": 6,
   "invalidated": 0,
-  "win_rate_pct": 33.33,
+  "win_rate_pct": 16.67,
   "win_rate_wilson95_pct": [
-    6.1,
-    79.2
+    3.0,
+    56.4
   ],
-  "average_net_return_pct": -3.675,
-  "average_net_after_0_6pct_cost": -3.975,
+  "average_net_return_pct": -3.792,
+  "average_net_after_0_6pct_cost": -4.092,
   "by_strategy": {
     "breakout": {
       "settled": 2,
@@ -20,9 +20,9 @@
       "average_net_pct": -5.571
     },
     "pullback": {
-      "settled": 1,
+      "settled": 4,
       "positive": 1,
-      "average_net_pct": 0.115
+      "average_net_pct": -2.903
     },
     "rebound": {
       "settled": 0,
@@ -38,16 +38,16 @@
       "positive_rate_pct": 100.0
     },
     "MSFT": {
-      "settled": 2,
-      "pending": 2,
-      "average_net_pct": -5.571,
+      "settled": 4,
+      "pending": 0,
+      "average_net_pct": -5.224,
       "positive_rate_pct": 0.0
     },
     "TSLA": {
-      "settled": 0,
-      "pending": 2,
-      "average_net_pct": null,
-      "positive_rate_pct": null
+      "settled": 1,
+      "pending": 1,
+      "average_net_pct": -1.974,
+      "positive_rate_pct": 0.0
     }
   },
   "drift_warning": null,
@@ -56,5 +56,5 @@
   "new_candidates": 0,
   "tracked_symbols": 6,
   "errors": [],
-  "last_checked_day_utc": "2026-11-17"
+  "last_checked_day_utc": "2026-11-18"
 }
