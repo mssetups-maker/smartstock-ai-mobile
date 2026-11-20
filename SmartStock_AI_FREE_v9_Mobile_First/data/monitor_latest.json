@@ -1,32 +1,32 @@
 {
-  "timestamp_utc": "2026-11-20T02:56:53.934146+00:00",
+  "timestamp_utc": "2026-11-20T04:02:36.917046+00:00",
   "mode": "15분 예약 감시 (실시간 아님)",
   "cryptocurrency": [
     {
       "market": "KRW-BTC",
-      "close": 84218000.0,
-      "last_candle_utc": "2026-11-20T02:50:00",
-      "last_1h_return_pct": 0.531,
+      "close": 84446000.0,
+      "last_candle_utc": "2026-11-20T03:55:00",
+      "last_1h_return_pct": -0.187,
       "sample_count": 28,
-      "saved_5min_rows": 10153,
+      "saved_5min_rows": 10166,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     },
     {
       "market": "KRW-ETH",
-      "close": 2368000.0,
-      "last_candle_utc": "2026-11-20T02:50:00",
-      "last_1h_return_pct": 0.382,
+      "close": 2373000.0,
+      "last_candle_utc": "2026-11-20T03:55:00",
+      "last_1h_return_pct": -0.21,
       "sample_count": 28,
-      "saved_5min_rows": 10154,
+      "saved_5min_rows": 10167,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     },
     {
       "market": "KRW-SOL",
-      "close": 98450.0,
-      "last_candle_utc": "2026-11-20T02:50:00",
-      "last_1h_return_pct": 0.255,
+      "close": 99050.0,
+      "last_candle_utc": "2026-11-20T03:55:00",
+      "last_1h_return_pct": -0.202,
       "sample_count": 28,
-      "saved_5min_rows": 10152,
+      "saved_5min_rows": 10165,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     }
   ],
@@ -52,7 +52,7 @@
     {
       "symbol": "AAPL",
       "last_observed_bar": "2026-11-19T15:30:00",
-      "close": 349.11,
+      "close": 349.1,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     },
     {
