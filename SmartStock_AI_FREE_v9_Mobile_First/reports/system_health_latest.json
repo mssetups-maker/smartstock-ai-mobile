@@ -1,45 +1,68 @@
 {
   "version": "11.2.0",
-  "timestamp_utc": "2026-11-21T02:32:06.723145+00:00",
-  "status": "failed",
-  "stock_crypto_experiments": 0,
-  "stock_sources": {},
-  "stock_symbols_analyzed": 0,
+  "timestamp_utc": "2026-11-22T02:34:21.773979+00:00",
+  "status": "partial",
+  "stock_crypto_experiments": 18,
+  "stock_sources": {
+    "TSLA": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-20 00:00:00",
+      "rows": 2514
+    },
+    "NVDA": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-20 00:00:00",
+      "rows": 2514
+    },
+    "CRWV": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-20 00:00:00",
+      "rows": 416
+    },
+    "AAPL": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-20 00:00:00",
+      "rows": 2514
+    },
+    "MSFT": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-20 00:00:00",
+      "rows": 2514
+    },
+    "QQQ": {
+      "provider": "Yahoo adjusted daily",
+      "last_completed_bar": "2026-11-20 00:00:00",
+      "rows": 2514
+    }
+  },
+  "stock_symbols_analyzed": 6,
   "crypto_symbols_analyzed": 3,
-  "paper_strategy_status": "ok",
-  "opportunity_diagnostic_status": "failed",
-  "wave_bottom_audit_status": "ok",
+  "paper_strategy_status": "partial",
+  "opportunity_diagnostic_status": "partial",
+  "wave_bottom_audit_status": "partial",
   "opportunity_signal_symbols": 0,
   "opportunity_near_miss_symbols": 0,
-  "ml_forward_status": "ok",
+  "ml_forward_status": "partial",
   "pattern_research_status": "ok",
   "failed_subsystems": [
     {
-      "source": "TSLA",
-      "error": "TSLA: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 "
+      "source": "opportunity/MSFT",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
     },
     {
-      "source": "NVDA",
-      "error": "NVDA: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 "
+      "source": "wave_bottom/MSFT",
+      "error": "고가/저가가 잘못된 캔들이 있습니다."
     },
     {
-      "source": "CRWV",
-      "error": "CRWV: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 "
+      "source": "paper_audit/MSFT",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
     },
     {
-      "source": "AAPL",
-      "error": "AAPL: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 "
-    },
-    {
-      "source": "MSFT",
-      "error": "MSFT: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 "
-    },
-    {
-      "source": "QQQ",
-      "error": "QQQ: 무료 일봉 데이터 제공처 두 곳 모두 이용 불가. Yahoo: ValueError OHLC가 누락되거나 0 이하/무한대인 캔들이 있습니다. 분석을 중단합니다. | Stooq: ValueError Stooq가 CSV 데이터를 제공하지 않았습니다(인증/사용량 제한/데이터 없음 가능). — 실제 가격 없이 예측하지 않"
+      "source": "forecast_forward/MSFT",
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외"
     }
   ],
-  "failure_count": 6,
+  "failure_count": 4,
   "model_auto_deployed": false,
   "note": "프로세스 완료는 예측 성능 향상이나 검증된 매수 신호를 뜻하지 않습니다."
 }

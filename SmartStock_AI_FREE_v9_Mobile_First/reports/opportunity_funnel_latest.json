@@ -1,13 +1,495 @@
 {
-  "by_symbol": {},
-  "covered_symbols": 0,
-  "errors": [],
-  "inactive_symbols": 0,
+  "by_symbol": {
+    "AAPL": {
+      "bar_date": "2026-11-20",
+      "classification": "해당 전략 매수 신호 없음",
+      "close": 342.559998,
+      "closest_strategy": "pullback",
+      "levels": {
+        "atr14": 8.176953,
+        "breakout_gap_pct": 5.33,
+        "ma20": 347.306572,
+        "ma60": 338.367057,
+        "prior_20_day_high": 360.829987,
+        "prior_20_day_low": 325.082991,
+        "pullback_band_high": 353.848135,
+        "pullback_band_low": 342.4004
+      },
+      "observed_candles": 2514,
+      "paper_only": true,
+      "period_bars": 252,
+      "reliability_note": "과거 발생일 수는 독립 체결 거래나 수익률이 아닙니다. 시장 위험, 뉴스/옵션, 실시간 변동은 반영하지 않았습니다.",
+      "signal_today": false,
+      "source_scope": "완성 일봉 가격·거래량만",
+      "strategies": {
+        "breakout": {
+          "checks": {
+            "RSI 50~85": false,
+            "거래량 >= 직전 20봉 평균의 1.1배": true,
+            "상승 추세(종가>60일선, 20일선>60일선)": true,
+            "직전 20봉 고점 돌파": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-10-22",
+          "missing": [
+            "직전 20봉 고점 돌파",
+            "RSI 50~85"
+          ],
+          "name": "상방 돌파",
+          "passed": 2,
+          "signal_days_in_lookback": 7,
+          "signal_today": false,
+          "total": 4
+        },
+        "pullback": {
+          "checks": {
+            "20일선 주변의 눌림목": true,
+            "RSI 40~72": true,
+            "상승 추세(종가>60일선, 20일선>60일선)": true,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-11-18",
+          "missing": [
+            "전일 종가 대비 상승",
+            "양봉/도지(종가>=시가)"
+          ],
+          "name": "상승 눌림목",
+          "passed": 3,
+          "signal_days_in_lookback": 14,
+          "signal_today": false,
+          "total": 5
+        },
+        "rebound": {
+          "checks": {
+            "20봉 저점으로부터 0~1.3 ATR": false,
+            "5일 이동평균 위": false,
+            "RSI 22~56": true,
+            "RSI 전일 대비 개선": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-06-15",
+          "missing": [
+            "20봉 저점으로부터 0~1.3 ATR",
+            "전일 종가 대비 상승",
+            "RSI 전일 대비 개선",
+            "양봉/도지(종가>=시가)",
+            "5일 이동평균 위"
+          ],
+          "name": "단기 반등",
+          "passed": 1,
+          "signal_days_in_lookback": 6,
+          "signal_today": false,
+          "total": 6
+        }
+      },
+      "symbol": "AAPL",
+      "version": "10.10-opportunity-funnel-1"
+    },
+    "CRWV": {
+      "bar_date": "2026-11-20",
+      "classification": "해당 전략 매수 신호 없음",
+      "close": 39.509998,
+      "closest_strategy": "breakout",
+      "levels": {
+        "atr14": 6.256828,
+        "breakout_gap_pct": 62.97,
+        "ma20": 51.845,
+        "ma60": 71.304417,
+        "prior_20_day_high": 64.389999,
+        "prior_20_day_low": 40.580002,
+        "pullback_band_high": 56.850462,
+        "pullback_band_low": 48.090903
+      },
+      "observed_candles": 416,
+      "paper_only": true,
+      "period_bars": 252,
+      "reliability_note": "과거 발생일 수는 독립 체결 거래나 수익률이 아닙니다. 시장 위험, 뉴스/옵션, 실시간 변동은 반영하지 않았습니다.",
+      "signal_today": false,
+      "source_scope": "완성 일봉 가격·거래량만",
+      "strategies": {
+        "breakout": {
+          "checks": {
+            "RSI 50~85": false,
+            "거래량 >= 직전 20봉 평균의 1.1배": true,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "직전 20봉 고점 돌파": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-01-27",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "직전 20봉 고점 돌파",
+            "RSI 50~85"
+          ],
+          "name": "상방 돌파",
+          "passed": 1,
+          "signal_days_in_lookback": 1,
+          "signal_today": false,
+          "total": 4
+        },
+        "pullback": {
+          "checks": {
+            "20일선 주변의 눌림목": false,
+            "RSI 40~72": false,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-10-01",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "20일선 주변의 눌림목",
+            "전일 종가 대비 상승",
+            "양봉/도지(종가>=시가)",
+            "RSI 40~72"
+          ],
+          "name": "상승 눌림목",
+          "passed": 0,
+          "signal_days_in_lookback": 16,
+          "signal_today": false,
+          "total": 5
+        },
+        "rebound": {
+          "checks": {
+            "20봉 저점으로부터 0~1.3 ATR": false,
+            "5일 이동평균 위": false,
+            "RSI 22~56": true,
+            "RSI 전일 대비 개선": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-09-21",
+          "missing": [
+            "20봉 저점으로부터 0~1.3 ATR",
+            "전일 종가 대비 상승",
+            "RSI 전일 대비 개선",
+            "양봉/도지(종가>=시가)",
+            "5일 이동평균 위"
+          ],
+          "name": "단기 반등",
+          "passed": 1,
+          "signal_days_in_lookback": 6,
+          "signal_today": false,
+          "total": 6
+        }
+      },
+      "symbol": "CRWV",
+      "version": "10.10-opportunity-funnel-1"
+    },
+    "NVDA": {
+      "bar_date": "2026-11-20",
+      "classification": "해당 전략 매수 신호 없음",
+      "close": 125.529999,
+      "closest_strategy": "breakout",
+      "levels": {
+        "atr14": 10.705318,
+        "breakout_gap_pct": 75.25,
+        "ma20": 181.457001,
+        "ma60": 209.551019,
+        "prior_20_day_high": 219.990005,
+        "prior_20_day_low": 145.710007,
+        "pullback_band_high": 190.021256,
+        "pullback_band_low": 175.033811
+      },
+      "observed_candles": 2514,
+      "paper_only": true,
+      "period_bars": 252,
+      "reliability_note": "과거 발생일 수는 독립 체결 거래나 수익률이 아닙니다. 시장 위험, 뉴스/옵션, 실시간 변동은 반영하지 않았습니다.",
+      "signal_today": false,
+      "source_scope": "완성 일봉 가격·거래량만",
+      "strategies": {
+        "breakout": {
+          "checks": {
+            "RSI 50~85": false,
+            "거래량 >= 직전 20봉 평균의 1.1배": true,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "직전 20봉 고점 돌파": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-10-05",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "직전 20봉 고점 돌파",
+            "RSI 50~85"
+          ],
+          "name": "상방 돌파",
+          "passed": 1,
+          "signal_days_in_lookback": 6,
+          "signal_today": false,
+          "total": 4
+        },
+        "pullback": {
+          "checks": {
+            "20일선 주변의 눌림목": false,
+            "RSI 40~72": false,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-10-13",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "20일선 주변의 눌림목",
+            "전일 종가 대비 상승",
+            "양봉/도지(종가>=시가)",
+            "RSI 40~72"
+          ],
+          "name": "상승 눌림목",
+          "passed": 0,
+          "signal_days_in_lookback": 16,
+          "signal_today": false,
+          "total": 5
+        },
+        "rebound": {
+          "checks": {
+            "20봉 저점으로부터 0~1.3 ATR": false,
+            "5일 이동평균 위": false,
+            "RSI 22~56": false,
+            "RSI 전일 대비 개선": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-10-26",
+          "missing": [
+            "20봉 저점으로부터 0~1.3 ATR",
+            "전일 종가 대비 상승",
+            "RSI 전일 대비 개선",
+            "양봉/도지(종가>=시가)",
+            "RSI 22~56",
+            "5일 이동평균 위"
+          ],
+          "name": "단기 반등",
+          "passed": 0,
+          "signal_days_in_lookback": 4,
+          "signal_today": false,
+          "total": 6
+        }
+      },
+      "symbol": "NVDA",
+      "version": "10.10-opportunity-funnel-1"
+    },
+    "QQQ": {
+      "bar_date": "2026-11-20",
+      "classification": "해당 전략 매수 신호 없음",
+      "close": 608.450012,
+      "closest_strategy": "breakout",
+      "levels": {
+        "atr14": 18.773095,
+        "breakout_gap_pct": 19.34,
+        "ma20": 678.530502,
+        "ma60": 711.361004,
+        "prior_20_day_high": 726.140015,
+        "prior_20_day_low": 644.340027,
+        "pullback_band_high": 693.548978,
+        "pullback_band_low": 667.266645
+      },
+      "observed_candles": 2514,
+      "paper_only": true,
+      "period_bars": 252,
+      "reliability_note": "과거 발생일 수는 독립 체결 거래나 수익률이 아닙니다. 시장 위험, 뉴스/옵션, 실시간 변동은 반영하지 않았습니다.",
+      "signal_today": false,
+      "source_scope": "완성 일봉 가격·거래량만",
+      "strategies": {
+        "breakout": {
+          "checks": {
+            "RSI 50~85": false,
+            "거래량 >= 직전 20봉 평균의 1.1배": true,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "직전 20봉 고점 돌파": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-09-22",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "직전 20봉 고점 돌파",
+            "RSI 50~85"
+          ],
+          "name": "상방 돌파",
+          "passed": 1,
+          "signal_days_in_lookback": 3,
+          "signal_today": false,
+          "total": 4
+        },
+        "pullback": {
+          "checks": {
+            "20일선 주변의 눌림목": false,
+            "RSI 40~72": false,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-09-17",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "20일선 주변의 눌림목",
+            "전일 종가 대비 상승",
+            "양봉/도지(종가>=시가)",
+            "RSI 40~72"
+          ],
+          "name": "상승 눌림목",
+          "passed": 0,
+          "signal_days_in_lookback": 22,
+          "signal_today": false,
+          "total": 5
+        },
+        "rebound": {
+          "checks": {
+            "20봉 저점으로부터 0~1.3 ATR": false,
+            "5일 이동평균 위": false,
+            "RSI 22~56": true,
+            "RSI 전일 대비 개선": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-03-17",
+          "missing": [
+            "20봉 저점으로부터 0~1.3 ATR",
+            "전일 종가 대비 상승",
+            "RSI 전일 대비 개선",
+            "양봉/도지(종가>=시가)",
+            "5일 이동평균 위"
+          ],
+          "name": "단기 반등",
+          "passed": 1,
+          "signal_days_in_lookback": 2,
+          "signal_today": false,
+          "total": 6
+        }
+      },
+      "symbol": "QQQ",
+      "version": "10.10-opportunity-funnel-1"
+    },
+    "TSLA": {
+      "bar_date": "2026-11-20",
+      "classification": "해당 전략 매수 신호 없음",
+      "close": 345.820007,
+      "closest_strategy": "rebound",
+      "levels": {
+        "atr14": 17.140435,
+        "breakout_gap_pct": 19.78,
+        "ma20": 384.798499,
+        "ma60": 373.449998,
+        "prior_20_day_high": 414.230011,
+        "prior_20_day_low": 338.149994,
+        "pullback_band_high": 398.510846,
+        "pullback_band_low": 374.514238
+      },
+      "observed_candles": 2514,
+      "paper_only": true,
+      "period_bars": 252,
+      "reliability_note": "과거 발생일 수는 독립 체결 거래나 수익률이 아닙니다. 시장 위험, 뉴스/옵션, 실시간 변동은 반영하지 않았습니다.",
+      "signal_today": false,
+      "source_scope": "완성 일봉 가격·거래량만",
+      "strategies": {
+        "breakout": {
+          "checks": {
+            "RSI 50~85": false,
+            "거래량 >= 직전 20봉 평균의 1.1배": true,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "직전 20봉 고점 돌파": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-10-27",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "직전 20봉 고점 돌파",
+            "RSI 50~85"
+          ],
+          "name": "상방 돌파",
+          "passed": 1,
+          "signal_days_in_lookback": 3,
+          "signal_today": false,
+          "total": 4
+        },
+        "pullback": {
+          "checks": {
+            "20일선 주변의 눌림목": false,
+            "RSI 40~72": false,
+            "상승 추세(종가>60일선, 20일선>60일선)": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-11-11",
+          "missing": [
+            "상승 추세(종가>60일선, 20일선>60일선)",
+            "20일선 주변의 눌림목",
+            "전일 종가 대비 상승",
+            "양봉/도지(종가>=시가)",
+            "RSI 40~72"
+          ],
+          "name": "상승 눌림목",
+          "passed": 0,
+          "signal_days_in_lookback": 14,
+          "signal_today": false,
+          "total": 5
+        },
+        "rebound": {
+          "checks": {
+            "20봉 저점으로부터 0~1.3 ATR": true,
+            "5일 이동평균 위": false,
+            "RSI 22~56": true,
+            "RSI 전일 대비 개선": false,
+            "양봉/도지(종가>=시가)": false,
+            "전일 종가 대비 상승": false
+          },
+          "historical_count_is_trades": false,
+          "is_near_miss": false,
+          "last_signal_date": "2026-07-31",
+          "missing": [
+            "전일 종가 대비 상승",
+            "RSI 전일 대비 개선",
+            "양봉/도지(종가>=시가)",
+            "5일 이동평균 위"
+          ],
+          "name": "단기 반등",
+          "passed": 2,
+          "signal_days_in_lookback": 8,
+          "signal_today": false,
+          "total": 6
+        }
+      },
+      "symbol": "TSLA",
+      "version": "10.10-opportunity-funnel-1"
+    }
+  },
+  "covered_symbols": 5,
+  "errors": [
+    {
+      "error": "가격 데이터 결측 또는 OHLC 관계 오류; 모의매매 분석 제외",
+      "symbol": "MSFT"
+    }
+  ],
+  "inactive_symbols": 5,
   "near_miss_symbols": 0,
   "paper_only": true,
   "signal_symbols": 0,
-  "status": "failed",
-  "timestamp_utc": "2026-11-21T02:32:06.723145+00:00",
+  "status": "partial",
+  "timestamp_utc": "2026-11-22T02:34:21.773979+00:00",
   "version": "10.10-opportunity-funnel-1",
   "warning": "후보가 많아지는 것 자체는 정확도 향상이 아닙니다. 규칙 진입 및 보유 기간별 실전 이후 성적을 따로 검증해야 합니다."
 }
