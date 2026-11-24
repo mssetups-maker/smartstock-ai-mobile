@@ -1,12 +1,12 @@
 {
-  "timestamp_utc": "2026-11-23T02:39:14.303114+00:00",
+  "timestamp_utc": "2026-11-24T02:39:12.150913+00:00",
   "status": "ok",
-  "new_candidates": 0,
+  "new_candidates": 3,
   "current_candidates": 3,
   "tracked_symbols": 6,
-  "total_logged": 34,
-  "newly_evaluated_horizons": 0,
-  "evaluated_5": 27,
+  "total_logged": 37,
+  "newly_evaluated_horizons": 2,
+  "evaluated_5": 29,
   "evaluated_21": 0,
   "errors": [],
   "by_symbol": {
@@ -21,7 +21,7 @@
         "observed_low": 344.32999,
         "observed_low_date": "2026-11-20",
         "confirmed_asof": null,
-        "latest_price": 345.82001,
+        "latest_price": 385.45999,
         "invalidation": null,
         "reevaluate": 252.23996,
         "anchors": [
@@ -29,22 +29,22 @@
             "label": "A 시작",
             "date": "2026-11-02",
             "price": 414.23001,
-            "position": 2499
+            "position": 2496
           },
           {
             "label": "A 저점",
             "date": "2026-11-05",
             "price": 338.14999,
-            "position": 2502
+            "position": 2499
           },
           {
             "label": "B 고점",
             "date": "2026-11-13",
             "price": 404.39999,
-            "position": 2508
+            "position": 2505
           }
         ],
-        "entry_trigger": 393.60001,
+        "entry_trigger": 373.88,
         "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
         "reasons": [
           "하락 ABC 지그재그 형태: B 고점에서 A 하락폭의 약 0.618~1.618배 C 관찰 구간. 5-3-5 내부 구조 미확인.",
@@ -58,7 +58,7 @@
     "CRWV": [
       {
         "kind": "Z파 저점",
-        "status": "관찰 구간",
+        "status": "초기 반등 관찰",
         "invalidated": false,
         "confirmed": false,
         "zone_low": 1e-05,
@@ -66,7 +66,7 @@
         "observed_low": 39.28,
         "observed_low_date": "2026-11-20",
         "confirmed_asof": null,
-        "latest_price": 39.51,
+        "latest_price": 48.33,
         "invalidation": null,
         "reevaluate": -16.925,
         "anchors": [
@@ -101,7 +101,7 @@
             "position": 408
           }
         ],
-        "entry_trigger": 52.86,
+        "entry_trigger": 43.24,
         "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
         "reasons": [
           "W-X-Y-X-Z 형태와 유사한 주요 스윙 골격. W/Y/Z 내부 ABC 확인 없이 진짜 삼중 지그재그로 확정 불가.",
@@ -114,7 +114,7 @@
     "AAPL": [
       {
         "kind": "2파 저점",
-        "status": "관찰 구간",
+        "status": "초기 반등 관찰",
         "invalidated": false,
         "confirmed": false,
         "zone_low": 332.73285,
@@ -122,7 +122,7 @@
         "observed_low": 340.56,
         "observed_low_date": "2026-11-20",
         "confirmed_asof": null,
-        "latest_price": 342.56,
+        "latest_price": 349.07999,
         "invalidation": 325.08299,
         "reevaluate": null,
         "anchors": [
@@ -130,16 +130,16 @@
             "label": "0 (시작)",
             "date": "2026-11-03",
             "price": 325.08299,
-            "position": 2500
+            "position": 2497
           },
           {
             "label": "1 (상승 고점)",
             "date": "2026-11-13",
             "price": 360.82999,
-            "position": 2508
+            "position": 2505
           }
         ],
-        "entry_trigger": 355.28,
+        "entry_trigger": 354.34,
         "trigger_description": "다음 완성봉의 종가가 이전 봉 고가를 넘는지 관찰(돌파만으로 매수 승인 아님)",
         "reasons": [
           "상승 1파 뒤 50~78.6% 되돌림 구간. 0파 침범 시 상승 2파 시나리오 무효.",
