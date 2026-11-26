@@ -1,18 +1,18 @@
 {
-  "generated_utc": "2026-11-25T10:29:10.624016+00:00",
+  "generated_utc": "2026-11-26T10:02:07.490484+00:00",
   "engine": "10.8-strategy-rules-v1",
   "paper_only": true,
   "total_logged": 12,
-  "pending": 6,
-  "settled": 6,
+  "pending": 5,
+  "settled": 7,
   "invalidated": 0,
-  "win_rate_pct": 16.67,
+  "win_rate_pct": 28.57,
   "win_rate_wilson95_pct": [
-    3.0,
-    56.4
+    8.2,
+    64.1
   ],
-  "average_net_return_pct": -3.792,
-  "average_net_after_0_6pct_cost": -4.092,
+  "average_net_return_pct": -3.185,
+  "average_net_after_0_6pct_cost": -3.485,
   "by_strategy": {
     "breakout": {
       "settled": 2,
@@ -20,9 +20,9 @@
       "average_net_pct": -5.571
     },
     "pullback": {
-      "settled": 4,
-      "positive": 1,
-      "average_net_pct": -2.903
+      "settled": 5,
+      "positive": 2,
+      "average_net_pct": -2.231
     },
     "rebound": {
       "settled": 0,
@@ -32,9 +32,9 @@
   },
   "by_symbol": {
     "AAPL": {
-      "settled": 1,
-      "pending": 2,
-      "average_net_pct": 0.115,
+      "settled": 2,
+      "pending": 1,
+      "average_net_pct": 0.286,
       "positive_rate_pct": 100.0
     },
     "MSFT": {
@@ -53,8 +53,8 @@
   "drift_warning": null,
   "assessment": "최소 20건 미만: 성적 판단 유보",
   "limitations": "모의 단일 거래 사례의 단순 평균. 포트폴리오 수익률 아님; 시세 지연/수정/배당/분할/체결오차 주의",
-  "new_candidates": 2,
+  "new_candidates": 0,
   "tracked_symbols": 6,
   "errors": [],
-  "last_checked_day_utc": "2026-11-25"
+  "last_checked_day_utc": "2026-11-26"
 }

@@ -1,37 +1,37 @@
 {
   "version": "11.2.0",
-  "timestamp_utc": "2026-11-25T10:29:10.624016+00:00",
+  "timestamp_utc": "2026-11-26T10:02:07.490484+00:00",
   "status": "ok",
   "stock_crypto_experiments": 18,
   "stock_sources": {
     "TSLA": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-24 00:00:00",
+      "last_completed_bar": "2026-11-25 00:00:00",
       "rows": 2513
     },
     "NVDA": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-24 00:00:00",
+      "last_completed_bar": "2026-11-25 00:00:00",
       "rows": 2513
     },
     "CRWV": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-24 00:00:00",
-      "rows": 418
+      "last_completed_bar": "2026-11-25 00:00:00",
+      "rows": 419
     },
     "AAPL": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-24 00:00:00",
+      "last_completed_bar": "2026-11-25 00:00:00",
       "rows": 2513
     },
     "MSFT": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-24 00:00:00",
+      "last_completed_bar": "2026-11-25 00:00:00",
       "rows": 2513
     },
     "QQQ": {
       "provider": "Yahoo adjusted daily",
-      "last_completed_bar": "2026-11-24 00:00:00",
+      "last_completed_bar": "2026-11-25 00:00:00",
       "rows": 2513
     }
   },
@@ -40,8 +40,8 @@
   "paper_strategy_status": "ok",
   "opportunity_diagnostic_status": "ok",
   "wave_bottom_audit_status": "ok",
-  "opportunity_signal_symbols": 2,
-  "opportunity_near_miss_symbols": 1,
+  "opportunity_signal_symbols": 0,
+  "opportunity_near_miss_symbols": 2,
   "ml_forward_status": "ok",
   "pattern_research_status": "ok",
   "failed_subsystems": [],
