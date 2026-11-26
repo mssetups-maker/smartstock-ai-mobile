@@ -1,32 +1,32 @@
 {
-  "timestamp_utc": "2026-11-26T12:31:54.071701+00:00",
+  "timestamp_utc": "2026-11-26T22:21:12.337941+00:00",
   "mode": "15분 예약 감시 (실시간 아님)",
   "cryptocurrency": [
     {
       "market": "KRW-BTC",
-      "close": 82285000.0,
-      "last_candle_utc": "2026-11-26T12:25:00",
-      "last_1h_return_pct": 0.001,
+      "close": 82236000.0,
+      "last_candle_utc": "2026-11-26T22:15:00",
+      "last_1h_return_pct": -0.431,
       "sample_count": 28,
-      "saved_5min_rows": 11996,
+      "saved_5min_rows": 12114,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     },
     {
       "market": "KRW-ETH",
-      "close": 2308000.0,
-      "last_candle_utc": "2026-11-26T12:25:00",
-      "last_1h_return_pct": 0.043,
+      "close": 2303000.0,
+      "last_candle_utc": "2026-11-26T22:15:00",
+      "last_1h_return_pct": -0.518,
       "sample_count": 28,
-      "saved_5min_rows": 11997,
+      "saved_5min_rows": 12115,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     },
     {
       "market": "KRW-SOL",
-      "close": 96000.0,
-      "last_candle_utc": "2026-11-26T12:25:00",
-      "last_1h_return_pct": -0.104,
+      "close": 96600.0,
+      "last_candle_utc": "2026-11-26T22:15:00",
+      "last_1h_return_pct": -0.464,
       "sample_count": 28,
-      "saved_5min_rows": 11995,
+      "saved_5min_rows": 12113,
       "intraday_research_status": "연구 검증 완료 — 실거래 모델 미반영"
     }
   ],
@@ -40,7 +40,7 @@
     {
       "symbol": "NVDA",
       "last_observed_bar": "2026-11-25T15:30:00",
-      "close": 149.27,
+      "close": 149.29,
       "source": "무료 Yahoo: 지연 또는 불완전 가능"
     },
     {
