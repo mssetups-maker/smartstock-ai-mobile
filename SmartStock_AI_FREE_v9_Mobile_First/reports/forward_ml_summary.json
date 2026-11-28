@@ -1,24 +1,24 @@
 {
   "engine": "10.8-RF-prospective-v1",
-  "last_checked_day_utc": "2026-11-27",
+  "last_checked_day_utc": "2026-11-28",
   "paper_only": true,
-  "total_logged": 188,
-  "pending": 124,
+  "total_logged": 200,
+  "pending": 131,
   "invalidated": 0,
-  "settled": 64,
+  "settled": 69,
   "by_horizon": {
     "5": {
-      "n": 64,
-      "distinct_signal_dates": 11,
+      "n": 69,
+      "distinct_signal_dates": 12,
       "nonoverlap_proxy": 3,
-      "observed_up_rate_pct": 35.94,
-      "always_up_accuracy_pct": 35.94,
-      "average_score_minus_observed_up_pct": 18.33,
-      "brier_improvement_over_fixed_half": -0.03078,
-      "accuracy_pct": 50.0,
-      "brier": 0.2808,
+      "observed_up_rate_pct": 39.13,
+      "always_up_accuracy_pct": 39.13,
+      "average_score_minus_observed_up_pct": 14.82,
+      "brier_improvement_over_fixed_half": -0.02767,
+      "accuracy_pct": 52.17,
+      "brier": 0.2777,
       "baseline_0_5_brier": 0.25,
-      "avg_predicted_score": 0.5427
+      "avg_predicted_score": 0.5395
     },
     "21": {
       "n": 0,
@@ -36,17 +36,17 @@
   },
   "by_symbol": {
     "AAPL": {
-      "n": 11,
-      "distinct_signal_dates": 11,
+      "n": 12,
+      "distinct_signal_dates": 12,
       "nonoverlap_proxy": 3,
-      "observed_up_rate_pct": 72.73,
-      "always_up_accuracy_pct": 72.73,
-      "average_score_minus_observed_up_pct": -23.94,
-      "brier_improvement_over_fixed_half": -0.0242,
-      "accuracy_pct": 45.45,
-      "brier": 0.2742,
+      "observed_up_rate_pct": 75.0,
+      "always_up_accuracy_pct": 75.0,
+      "average_score_minus_observed_up_pct": -26.36,
+      "brier_improvement_over_fixed_half": -0.02468,
+      "accuracy_pct": 41.67,
+      "brier": 0.2747,
       "baseline_0_5_brier": 0.25,
-      "avg_predicted_score": 0.4879
+      "avg_predicted_score": 0.4864
     },
     "CRWV": {
       "n": 10,
@@ -62,43 +62,43 @@
       "avg_predicted_score": 0.7359
     },
     "MSFT": {
+      "n": 12,
+      "distinct_signal_dates": 12,
+      "nonoverlap_proxy": 3,
+      "observed_up_rate_pct": 25.0,
+      "always_up_accuracy_pct": 25.0,
+      "average_score_minus_observed_up_pct": 21.77,
+      "brier_improvement_over_fixed_half": 0.01526,
+      "accuracy_pct": 66.67,
+      "brier": 0.2347,
+      "baseline_0_5_brier": 0.25,
+      "avg_predicted_score": 0.4677
+    },
+    "NVDA": {
+      "n": 12,
+      "distinct_signal_dates": 12,
+      "nonoverlap_proxy": 3,
+      "observed_up_rate_pct": 16.67,
+      "always_up_accuracy_pct": 16.67,
+      "average_score_minus_observed_up_pct": 45.49,
+      "brier_improvement_over_fixed_half": -0.11137,
+      "accuracy_pct": 25.0,
+      "brier": 0.3614,
+      "baseline_0_5_brier": 0.25,
+      "avg_predicted_score": 0.6215
+    },
+    "QQQ": {
       "n": 11,
       "distinct_signal_dates": 11,
       "nonoverlap_proxy": 3,
       "observed_up_rate_pct": 27.27,
       "always_up_accuracy_pct": 27.27,
-      "average_score_minus_observed_up_pct": 19.51,
-      "brier_improvement_over_fixed_half": 0.01362,
-      "accuracy_pct": 63.64,
-      "brier": 0.2364,
+      "average_score_minus_observed_up_pct": 21.71,
+      "brier_improvement_over_fixed_half": 0.05921,
+      "accuracy_pct": 81.82,
+      "brier": 0.1908,
       "baseline_0_5_brier": 0.25,
-      "avg_predicted_score": 0.4678
-    },
-    "NVDA": {
-      "n": 11,
-      "distinct_signal_dates": 11,
-      "nonoverlap_proxy": 3,
-      "observed_up_rate_pct": 9.09,
-      "always_up_accuracy_pct": 9.09,
-      "average_score_minus_observed_up_pct": 54.05,
-      "brier_improvement_over_fixed_half": -0.12268,
-      "accuracy_pct": 18.18,
-      "brier": 0.3727,
-      "baseline_0_5_brier": 0.25,
-      "avg_predicted_score": 0.6314
-    },
-    "QQQ": {
-      "n": 10,
-      "distinct_signal_dates": 10,
-      "nonoverlap_proxy": 2,
-      "observed_up_rate_pct": 20.0,
-      "always_up_accuracy_pct": 20.0,
-      "average_score_minus_observed_up_pct": 28.79,
-      "brier_improvement_over_fixed_half": 0.06421,
-      "accuracy_pct": 80.0,
-      "brier": 0.1858,
-      "baseline_0_5_brier": 0.25,
-      "avg_predicted_score": 0.4879
+      "avg_predicted_score": 0.4899
     },
     "SPY": {
       "n": 0,
@@ -114,22 +114,22 @@
       "avg_predicted_score": null
     },
     "TSLA": {
-      "n": 11,
-      "distinct_signal_dates": 11,
+      "n": 12,
+      "distinct_signal_dates": 12,
       "nonoverlap_proxy": 3,
-      "observed_up_rate_pct": 54.55,
-      "always_up_accuracy_pct": 54.55,
-      "average_score_minus_observed_up_pct": -8.77,
-      "brier_improvement_over_fixed_half": 0.01727,
-      "accuracy_pct": 63.64,
-      "brier": 0.2327,
+      "observed_up_rate_pct": 58.33,
+      "always_up_accuracy_pct": 58.33,
+      "average_score_minus_observed_up_pct": -11.9,
+      "brier_improvement_over_fixed_half": 0.01878,
+      "accuracy_pct": 66.67,
+      "brier": 0.2312,
       "baseline_0_5_brier": 0.25,
-      "avg_predicted_score": 0.4578
+      "avg_predicted_score": 0.4643
     }
   },
   "reliability": "20건 이상 완료된 동일 기간을 우선 평가. nonoverlap_proxy는 겹침 보정의 참고값일 뿐 종목 간 독립성을 증명하지 않습니다.",
   "note": "모델 점수는 보정된 상승확률이 아닙니다. 검증 파일은 자동 모델 채택에 사용하지 않습니다.",
-  "new_snapshots": 0,
+  "new_snapshots": 12,
   "tracked_symbols": 6,
   "errors": []
 }
